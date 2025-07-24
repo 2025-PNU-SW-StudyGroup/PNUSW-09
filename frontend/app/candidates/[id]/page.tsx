@@ -1,30 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { useParams } from "next/navigation"
-import {
-  Github,
-  ExternalLink,
-  Download,
-  Calendar,
-  MapPin,
-  Clock,
-  Star,
-  CheckCircle,
-  AlertTriangle,
-  TrendingUp,
-  Play,
-  FileText,
-} from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getCandidateById } from "@/lib/mock-data"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Download,
+  ExternalLink,
+  FileText,
+  Github,
+  MapPin,
+  Play,
+  Star,
+  TrendingUp,
+} from "lucide-react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import { useState } from "react"
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 export default function CandidateDetailPage() {
   const params = useParams()
@@ -40,10 +40,10 @@ export default function CandidateDetailPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-800 mb-4">Candidate Not Found</h1>
-          <p className="text-slate-600">The candidate you're looking for doesn't exist.</p>
-          <Link href="/overview">
-            <Button className="mt-4">Back to Overview</Button>
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">지원자를 찾을 수 없습니다</h1>
+          <p className="text-slate-600">찾으시는 지원자가 존재하지 않습니다.</p>
+          <Link href="/">
+            <Button className="mt-4">개요로 돌아가기</Button>
           </Link>
         </div>
       </div>
@@ -54,10 +54,10 @@ export default function CandidateDetailPage() {
   const performanceData =
     candidate.status === "completed"
       ? [
-          { name: "Technical Knowledge", value: 85, color: "#3b82f6" },
-          { name: "Problem Solving", value: 78, color: "#10b981" },
-          { name: "Communication", value: 92, color: "#f59e0b" },
-          { name: "Code Quality", value: 88, color: "#8b5cf6" },
+          { name: "기술 지식", value: 85, color: "#3b82f6" },
+          { name: "문제 해결", value: 78, color: "#10b981" },
+          { name: "커뮤니케이션", value: 92, color: "#f59e0b" },
+          { name: "코드 품질", value: 88, color: "#8b5cf6" },
         ]
       : []
 
@@ -66,8 +66,8 @@ export default function CandidateDetailPage() {
       ? [
           { topic: "React", timeSpent: 12, questions: 4, success: 85 },
           { topic: "TypeScript", timeSpent: 8, questions: 3, success: 90 },
-          { topic: "Algorithms", timeSpent: 15, questions: 5, success: 70 },
-          { topic: "System Design", timeSpent: 10, questions: 2, success: 75 },
+          { topic: "알고리즘", timeSpent: 15, questions: 5, success: 70 },
+          { topic: "시스템 설계", timeSpent: 10, questions: 2, success: 75 },
         ]
       : []
 
@@ -77,6 +77,17 @@ export default function CandidateDetailPage() {
     link.href = "#"
     link.download = `${candidate.name.replace(" ", "_")}_interview_report.pdf`
     link.click()
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "완료"
+      case "pending":
+        return "대기중"
+      default:
+        return status
+    }
   }
 
   return (
@@ -109,7 +120,7 @@ export default function CandidateDetailPage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    Applied {new Date(candidate.appliedDate).toLocaleDateString()}
+                    {new Date(candidate.appliedDate).toLocaleDateString()} 지원
                   </span>
                 </div>
               </div>
@@ -122,12 +133,12 @@ export default function CandidateDetailPage() {
                     : "bg-yellow-100 text-yellow-800 border-yellow-200"
                 } border`}
               >
-                {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
+                {getStatusText(candidate.status)}
               </Badge>
               <Link href={`/interview/${candidate.id}`}>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <Play className="h-4 w-4 mr-2" />
-                  {candidate.status === "completed" ? "Review Interview" : "Start Interview"}
+                  {candidate.status === "completed" ? "면접 검토" : "면접 시작"}
                 </Button>
               </Link>
             </div>
@@ -135,7 +146,7 @@ export default function CandidateDetailPage() {
 
           {/* Skills */}
           <div>
-            <p className="text-sm font-medium text-slate-600 mb-2">Skills & Technologies:</p>
+            <p className="text-sm font-medium text-slate-600 mb-2">기술 스택:</p>
             <div className="flex flex-wrap gap-2">
               {candidate.skills.map((skill) => (
                 <Badge key={skill} variant="outline" className="bg-slate-50">
@@ -149,9 +160,9 @@ export default function CandidateDetailPage() {
         {/* Tabs */}
         <Tabs defaultValue="skills-summary" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="skills-summary">Skills Summary</TabsTrigger>
+            <TabsTrigger value="skills-summary">기술 요약</TabsTrigger>
             <TabsTrigger value="interview-report" disabled={candidate.status !== "completed"}>
-              Interview Report
+              면접 리포트
             </TabsTrigger>
           </TabsList>
 
@@ -163,25 +174,25 @@ export default function CandidateDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
-                    Resume Analysis
+                    이력서 분석
                   </CardTitle>
-                  <CardDescription>AI-generated analysis from uploaded resume</CardDescription>
+                  <CardDescription>업로드된 이력서 기반 AI 분석</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">{candidate.experience}</div>
-                        <div className="text-sm text-blue-700">Experience</div>
+                        <div className="text-sm text-blue-700">경력</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 rounded-lg">
                         <div className="text-2xl font-bold text-green-600">{candidate.skills.length}</div>
-                        <div className="text-sm text-green-700">Key Skills</div>
+                        <div className="text-sm text-green-700">주요 기술</div>
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-slate-600 mb-2">Technical Skills:</p>
+                      <p className="text-sm font-medium text-slate-600 mb-2">기술 스택:</p>
                       <div className="flex flex-wrap gap-2">
                         {candidate.skills.map((skill) => (
                           <Badge key={skill} variant="outline" className="bg-slate-50">
@@ -199,9 +210,9 @@ export default function CandidateDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Github className="h-5 w-5 text-blue-600" />
-                    GitHub Analysis
+                    GitHub 분석
                   </CardTitle>
-                  <CardDescription>Code repository and contribution analysis</CardDescription>
+                  <CardDescription>코드 저장소 및 기여도 분석</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {candidate.githubUrl ? (
@@ -209,16 +220,16 @@ export default function CandidateDetailPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-3 bg-purple-50 rounded-lg">
                           <div className="text-2xl font-bold text-purple-600">15</div>
-                          <div className="text-sm text-purple-700">Repositories</div>
+                          <div className="text-sm text-purple-700">저장소</div>
                         </div>
                         <div className="text-center p-3 bg-orange-50 rounded-lg">
                           <div className="text-2xl font-bold text-orange-600">4.2k</div>
-                          <div className="text-sm text-orange-700">Contributions</div>
+                          <div className="text-sm text-orange-700">기여도</div>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-slate-600 mb-2">Primary Languages:</p>
+                        <p className="text-sm font-medium text-slate-600 mb-2">주요 언어:</p>
                         <div className="flex flex-wrap gap-2">
                           {["JavaScript", "TypeScript", "Python", "React"].map((lang) => (
                             <Badge key={lang} variant="outline" className="bg-blue-50">
@@ -234,11 +245,11 @@ export default function CandidateDetailPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
                       >
-                        View GitHub Profile <ExternalLink className="h-3 w-3" />
+                        GitHub 프로필 보기 <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   ) : (
-                    <p className="text-slate-500 text-center py-4">No GitHub profile provided</p>
+                    <p className="text-slate-500 text-center py-4">GitHub 프로필이 제공되지 않았습니다</p>
                   )}
                 </CardContent>
               </Card>
@@ -248,20 +259,20 @@ export default function CandidateDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ExternalLink className="h-5 w-5 text-blue-600" />
-                    Portfolio & Projects
+                    포트폴리오 & 프로젝트
                   </CardTitle>
-                  <CardDescription>Analysis of portfolio and project work</CardDescription>
+                  <CardDescription>포트폴리오 및 프로젝트 작업 분석</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {candidate.portfolioUrl ? (
                     <div className="space-y-4">
                       <div>
-                        <p className="text-sm font-medium text-slate-600 mb-2">Key Strengths Identified:</p>
+                        <p className="text-sm font-medium text-slate-600 mb-2">확인된 주요 강점:</p>
                         <ul className="text-sm text-slate-700 space-y-1">
-                          <li>• Strong frontend development experience with modern frameworks</li>
-                          <li>• Excellent UI/UX design sensibility</li>
-                          <li>• Full-stack capabilities demonstrated across projects</li>
-                          <li>• Active open source contributor</li>
+                          <li>• 모던 프레임워크를 활용한 강력한 프론트엔드 개발 경험</li>
+                          <li>• 뛰어난 UI/UX 디자인 감각</li>
+                          <li>• 프로젝트 전반에 걸쳐 입증된 풀스택 역량</li>
+                          <li>• 활발한 오픈소스 기여 활동</li>
                         </ul>
                       </div>
 
@@ -271,11 +282,11 @@ export default function CandidateDetailPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
                       >
-                        View Portfolio <ExternalLink className="h-3 w-3" />
+                        포트폴리오 보기 <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   ) : (
-                    <p className="text-slate-500 text-center py-4">No portfolio provided</p>
+                    <p className="text-slate-500 text-center py-4">포트폴리오가 제공되지 않았습니다</p>
                   )}
                 </CardContent>
               </Card>
@@ -289,9 +300,9 @@ export default function CandidateDetailPage() {
                 {/* Overall Score */}
                 <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                   <CardHeader className="text-center">
-                    <CardTitle className="text-2xl text-slate-800">Interview Performance</CardTitle>
+                    <CardTitle className="text-2xl text-slate-800">면접 성과</CardTitle>
                     <CardDescription>
-                      Completed on {candidate.interviewDate && new Date(candidate.interviewDate).toLocaleDateString()}
+                      {candidate.interviewDate && new Date(candidate.interviewDate).toLocaleDateString()} 완료
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
@@ -322,15 +333,15 @@ export default function CandidateDetailPage() {
                       <Star className="h-5 w-5 text-yellow-500 fill-current" />
                       <span className="text-lg font-semibold text-slate-700">
                         {candidate.score && candidate.score >= 85
-                          ? "Excellent"
+                          ? "우수"
                           : candidate.score && candidate.score >= 70
-                            ? "Good"
-                            : "Needs Improvement"}
+                            ? "양호"
+                            : "개선 필요"}
                       </span>
                     </div>
                     <Button onClick={downloadReport} className="bg-blue-600 hover:bg-blue-700">
                       <Download className="h-4 w-4 mr-2" />
-                      Download Full Report
+                      전체 리포트 다운로드
                     </Button>
                   </CardContent>
                 </Card>
@@ -341,7 +352,7 @@ export default function CandidateDetailPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-blue-600" />
-                        Performance Breakdown
+                        성과 분석
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -362,7 +373,7 @@ export default function CandidateDetailPage() {
                   {/* Topic Performance */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Topic Performance</CardTitle>
+                      <CardTitle>주제별 성과</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={200}>
@@ -384,7 +395,7 @@ export default function CandidateDetailPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-green-800">
                         <CheckCircle className="h-5 w-5" />
-                        Key Strengths
+                        주요 강점
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -394,7 +405,20 @@ export default function CandidateDetailPage() {
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-green-800">{strength}</span>
                           </li>
-                        ))}
+                        )) || [
+                          <li key="default1" className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-green-800">문제 해결 능력이 뛰어남</span>
+                          </li>,
+                          <li key="default2" className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-green-800">기술적 지식이 풍부함</span>
+                          </li>,
+                          <li key="default3" className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-green-800">의사소통 능력이 우수함</span>
+                          </li>
+                        ]}
                       </ul>
                     </CardContent>
                   </Card>
@@ -404,7 +428,7 @@ export default function CandidateDetailPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-amber-800">
                         <AlertTriangle className="h-5 w-5" />
-                        Areas for Improvement
+                        개선 영역
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -414,7 +438,16 @@ export default function CandidateDetailPage() {
                             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-amber-800">{improvement}</span>
                           </li>
-                        ))}
+                        )) || [
+                          <li key="default1" className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-amber-800">알고리즘 최적화 기법 보완 필요</span>
+                          </li>,
+                          <li key="default2" className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-amber-800">시스템 설계 경험 확장 필요</span>
+                          </li>
+                        ]}
                       </ul>
                     </CardContent>
                   </Card>

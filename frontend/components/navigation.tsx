@@ -1,24 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Brain, Menu, Mic, User, UserPlus, Users, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Brain, Menu, X, Users, UserPlus, User, Mic } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
   const navItems = [
-    { href: "/overview", label: "Overview", icon: Users },
-    { href: "/register", label: "Register", icon: UserPlus },
-    { href: "/candidates", label: "Candidate", icon: User },
-    { href: "/interview", label: "Interview", icon: Mic },
+    { href: "/", label: "개요", icon: Users },
+    { href: "/register", label: "등록", icon: UserPlus },
+    { href: "/candidates", label: "지원자", icon: User },
+    { href: "/interview", label: "면접", icon: Mic },
   ]
 
   const isActive = (href: string) => {
-    if (href === "/overview") return pathname === "/overview"
+    if (href === "/") return pathname === "/"
     if (href === "/register") return pathname === "/register"
     if (href === "/candidates") return pathname.startsWith("/candidates")
     if (href === "/interview") return pathname.startsWith("/interview")
@@ -30,7 +30,7 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/overview" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <Brain className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-slate-800">InterviewAI</span>
           </Link>

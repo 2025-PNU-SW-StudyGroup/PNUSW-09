@@ -23,7 +23,7 @@ interface Message {
 interface Question {
   id: string
   category: string
-  difficulty: "Easy" | "Medium" | "Hard"
+  difficulty: "쉬움" | "보통" | "어려움"
   question: string
   followUps: string[]
 }
@@ -54,45 +54,45 @@ export default function LiveInterviewPage() {
     {
       id: "1",
       category: "React",
-      difficulty: "Medium",
-      question: "Explain the difference between useEffect and useLayoutEffect hooks.",
+      difficulty: "보통",
+      question: "useEffect와 useLayoutEffect 훅의 차이점을 설명해주세요.",
       followUps: [
-        "When would you choose one over the other?",
-        "Can you provide a practical example?",
-        "How do they affect the rendering cycle?",
+        "언제 어떤 것을 선택해야 할까요?",
+        "실용적인 예시를 제공해 주실 수 있나요?",
+        "렌더링 사이클에 어떤 영향을 미치나요?",
       ],
     },
     {
       id: "2",
-      category: "System Design",
-      difficulty: "Hard",
-      question: "Design a real-time chat application that can handle millions of users.",
+      category: "시스템 설계",
+      difficulty: "어려움",
+      question: "수백만 명의 사용자를 처리할 수 있는 실시간 채팅 애플리케이션을 설계해보세요.",
       followUps: [
-        "How would you handle message persistence?",
-        "What about scaling the WebSocket connections?",
-        "How would you implement message delivery guarantees?",
+        "메시지 저장을 어떻게 처리하시겠습니까?",
+        "WebSocket 연결의 확장성은 어떻게 처리하시겠습니까?",
+        "메시지 전송 보장을 어떻게 구현하시겠습니까?",
       ],
     },
     {
       id: "3",
-      category: "Algorithms",
-      difficulty: "Easy",
-      question: "Implement a function to reverse a string without using built-in methods.",
+      category: "알고리즘",
+      difficulty: "쉬움",
+      question: "내장 메서드를 사용하지 않고 문자열을 뒤집는 함수를 구현해보세요.",
       followUps: [
-        "What's the time complexity?",
-        "Can you optimize for space?",
-        "How would you handle Unicode characters?",
+        "시간 복잡도는 어떻게 되나요?",
+        "공간 효율성을 위해 최적화할 수 있나요?",
+        "유니코드 문자는 어떻게 처리하시겠습니까?",
       ],
     },
     {
       id: "4",
       category: "TypeScript",
-      difficulty: "Medium",
-      question: "Explain generic constraints and provide an example of when you'd use them.",
+      difficulty: "보통",
+      question: "제네릭 제약조건(generic constraints)을 설명하고 언제 사용하는지 예시를 들어주세요.",
       followUps: [
-        "How do they improve type safety?",
-        "Can you show a real-world use case?",
-        "What about conditional types?",
+        "타입 안전성을 어떻게 향상시키나요?",
+        "실제 사용 사례를 보여주실 수 있나요?",
+        "조건부 타입은 어떤가요?",
       ],
     },
   ]
@@ -204,7 +204,7 @@ export default function LiveInterviewPage() {
 
     } catch (error) {
       console.error('Error starting recording:', error)
-      alert('Microphone access permission is required.')
+      alert('마이크 접근 권한이 필요합니다.')
     }
   }
 
@@ -270,10 +270,10 @@ export default function LiveInterviewPage() {
       // Simulate interviewer response
       setTimeout(() => {
         const responses = [
-          "That's a great answer. Could you explain it in more detail?",
-          "Interesting approach. How would you handle edge cases?",
-          "Good explanation. Let's dive deeper into the implementation.",
-          "I understand. What about performance considerations?",
+          "좋은 답변이네요. 더 자세히 설명해 주실 수 있나요?",
+          "흥미로운 접근법이네요. 예외 상황은 어떻게 처리하시겠습니까?",
+          "잘 설명해주셨습니다. 구현에 대해 더 자세히 알아볼까요?",
+          "이해했습니다. 성능 고려사항은 어떤가요?",
         ]
 
         const response: Message = {
@@ -295,7 +295,7 @@ export default function LiveInterviewPage() {
     const welcomeMessage: Message = {
       id: "welcome",
       sender: "interviewer",
-      content: `Hello ${candidate?.name}! Welcome to your technical interview. I've reviewed your background in ${candidate?.position}. Let's start with a brief introduction about your experience.`,
+      content: `안녕하세요 ${candidate?.name}님! 기술 면접에 오신 것을 환영합니다. ${candidate?.position} 분야의 경력을 검토해보았습니다. 먼저 본인의 경험에 대해 간단히 소개해 주세요.`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
 
@@ -333,11 +333,11 @@ export default function LiveInterviewPage() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy":
+      case "쉬움":
         return "bg-green-100 text-green-800"
-      case "Medium":
+      case "보통":
         return "bg-yellow-100 text-yellow-800"
-      case "Hard":
+      case "어려움":
         return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
@@ -348,9 +348,9 @@ export default function LiveInterviewPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-800 mb-4">Candidate Not Found</h1>
-          <Link href="/overview">
-            <Button>Back to Overview</Button>
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">지원자를 찾을 수 없습니다</h1>
+          <Link href="/">
+            <Button>개요로 돌아가기</Button>
           </Link>
         </div>
       </div>
@@ -388,7 +388,7 @@ export default function LiveInterviewPage() {
                     <div
                       className={`w-3 h-3 rounded-full ${isInterviewStarted ? "bg-green-500 animate-pulse" : "bg-slate-300"}`}
                     ></div>
-                    <span className="text-sm font-medium">{isInterviewStarted ? "Live Interview" : "Not Started"}</span>
+                    <span className="text-sm font-medium">{isInterviewStarted ? "실시간 면접" : "시작 전"}</span>
                   </div>
 
                   {isInterviewStarted && (
@@ -402,19 +402,19 @@ export default function LiveInterviewPage() {
 
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setShowQuestions(!showQuestions)}>
-                  {showQuestions ? "Hide" : "Show"} Questions
+                  질문 {showQuestions ? "숨기기" : "보기"}
                 </Button>
 
                 {!isInterviewStarted ? (
                   <Button onClick={startInterview} className="bg-green-600 hover:bg-green-700">
                     <Play className="h-4 w-4 mr-2" />
-                    Start Interview
+                    면접 시작
                   </Button>
                 ) : (
                   <Link href={`/candidates/${candidate.id}`}>
                     <Button onClick={stopInterview} variant="destructive">
                       <Square className="h-4 w-4 mr-2" />
-                      End Interview
+                      면접 종료
                     </Button>
                   </Link>
                 )}
@@ -435,7 +435,7 @@ export default function LiveInterviewPage() {
                       className="flex items-center gap-2"
                     >
                       {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      {isRecording ? "Stop Recording" : "Start Recording"}
+                      {isRecording ? "녹음 중지" : "녹음 시작"}
                     </Button>
 
                     {isRecording && (
@@ -452,7 +452,7 @@ export default function LiveInterviewPage() {
 
                         {currentSpeaker && (
                           <Badge variant="outline" className="text-xs">
-                            {currentSpeaker === "candidate" ? "Candidate Speaking" : "Interviewer Speaking"}
+                            {currentSpeaker === "candidate" ? "지원자 발화 중" : "면접관 발화 중"}
                           </Badge>
                         )}
                       </div>
@@ -462,7 +462,7 @@ export default function LiveInterviewPage() {
 
                 <Alert className="border-blue-200 bg-blue-50 p-2 w-auto">
                   <AlertDescription className="text-blue-700 text-sm">
-                    🎤 Real-time transcription enabled. All conversation is being transcribed automatically.
+                    🎤 실시간 음성 인식이 활성화되었습니다. 모든 대화가 자동으로 텍스트로 변환됩니다.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -476,12 +476,12 @@ export default function LiveInterviewPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mic className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">Ready to Start Interview</h3>
+                <h3 className="text-lg font-medium text-slate-800 mb-2">면접 시작 준비 완료</h3>
                 <p className="text-slate-600 mb-4">
-                  Click &ldquo;Start Interview&rdquo; to begin real-time transcription
+                  &ldquo;면접 시작&rdquo;을 클릭하여 실시간 음성 인식을 시작하세요
                 </p>
                 <p className="text-sm text-slate-500">
-                  The system will automatically detect who&rsquo;s speaking and transcribe the conversation
+                  시스템이 자동으로 발화자를 구분하고 대화를 텍스트로 변환합니다
                 </p>
               </div>
             ) : (
@@ -534,7 +534,7 @@ export default function LiveInterviewPage() {
                     </Avatar>
                     <div className="max-w-md rounded-lg p-3 bg-slate-200 border border-slate-300 opacity-70">
                       <p className="text-sm">{currentTranscript}</p>
-                      <p className="text-xs mt-1 text-slate-500">Transcribing...</p>
+                      <p className="text-xs mt-1 text-slate-500">변환 중...</p>
                     </div>
                   </div>
                 )}
@@ -549,35 +549,35 @@ export default function LiveInterviewPage() {
         {showQuestions && (
           <div className="w-96 bg-white border-l border-slate-200 flex flex-col">
             <div className="p-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Question Recommendations</h2>
+              <h2 className="text-lg font-semibold text-slate-800 mb-4">추천 질문</h2>
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-600 mb-1 block">Difficulty</label>
+                  <label className="text-sm font-medium text-slate-600 mb-1 block">난이도</label>
                   <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="Easy">Easy</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="Hard">Hard</SelectItem>
+                      <SelectItem value="all">모든 레벨</SelectItem>
+                      <SelectItem value="쉬움">쉬움</SelectItem>
+                      <SelectItem value="보통">보통</SelectItem>
+                      <SelectItem value="어려움">어려움</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-slate-600 mb-1 block">Topic</label>
+                  <label className="text-sm font-medium text-slate-600 mb-1 block">주제</label>
                   <Select value={selectedTopic} onValueChange={setSelectedTopic}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Topics</SelectItem>
+                      <SelectItem value="all">모든 주제</SelectItem>
                       <SelectItem value="react">React</SelectItem>
-                      <SelectItem value="algorithms">Algorithms</SelectItem>
-                      <SelectItem value="system">System Design</SelectItem>
+                      <SelectItem value="algorithms">알고리즘</SelectItem>
+                      <SelectItem value="system">시스템 설계</SelectItem>
                       <SelectItem value="typescript">TypeScript</SelectItem>
                     </SelectContent>
                   </Select>
@@ -609,12 +609,12 @@ export default function LiveInterviewPage() {
                       disabled={!isInterviewStarted}
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add to Interview
+                      면접에 추가
                     </Button>
 
                     {question.followUps.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs font-medium text-slate-600">Follow-up suggestions:</p>
+                        <p className="text-xs font-medium text-slate-600">후속 질문 제안:</p>
                         {question.followUps.map((followUp, index) => (
                           <div key={index} className="flex items-center gap-2">
                             <Button

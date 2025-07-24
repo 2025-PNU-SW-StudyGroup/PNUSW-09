@@ -2,17 +2,17 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Upload, Github, ExternalLink, CheckCircle, User, FileText, LinkIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { CheckCircle, ExternalLink, FileText, Github, LinkIcon, Upload, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface FormData {
   name: string
@@ -59,17 +59,17 @@ export default function RegisterPage() {
   const [githubValidated, setGithubValidated] = useState(false)
 
   const positions = [
-    "Frontend Developer",
-    "Backend Developer",
-    "Full Stack Engineer",
-    "Mobile Developer",
-    "DevOps Engineer",
-    "Data Engineer",
-    "UI/UX Designer",
-    "Product Manager",
+    "프론트엔드 개발자",
+    "백엔드 개발자", 
+    "풀스택 엔지니어",
+    "모바일 개발자",
+    "DevOps 엔지니어",
+    "데이터 엔지니어",
+    "UI/UX 디자이너",
+    "제품 매니저",
   ]
 
-  const experienceLevels = ["1-2 years", "3-4 years", "5-7 years", "8+ years"]
+  const experienceLevels = ["1-2년", "3-4년", "5-7년", "8년 이상"]
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -135,13 +135,13 @@ export default function RegisterPage() {
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {}
 
-    if (!formData.name.trim()) newErrors.name = "Name is required"
-    if (!formData.email.trim()) newErrors.email = "Email is required"
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format"
-    if (!formData.position) newErrors.position = "Position is required"
-    if (!formData.experience) newErrors.experience = "Experience level is required"
-    if (!formData.location.trim()) newErrors.location = "Location is required"
-    if (!formData.skills.trim()) newErrors.skills = "Skills are required"
+    if (!formData.name.trim()) newErrors.name = "이름을 입력해주세요"
+    if (!formData.email.trim()) newErrors.email = "이메일을 입력해주세요"
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "유효하지 않은 이메일 형식입니다"
+    if (!formData.position) newErrors.position = "포지션을 선택해주세요"
+    if (!formData.experience) newErrors.experience = "경력을 선택해주세요"
+    if (!formData.location.trim()) newErrors.location = "지역을 입력해주세요"
+    if (!formData.skills.trim()) newErrors.skills = "기술 스택을 입력해주세요"
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -169,7 +169,7 @@ export default function RegisterPage() {
     }
 
     if (!files.resume) {
-      setErrors({ name: "Resume is required" })
+      setErrors({ name: "이력서를 업로드해주세요" })
       return
     }
 
@@ -186,7 +186,7 @@ export default function RegisterPage() {
       console.log("Submitting candidate:", { formData, files })
 
       // Redirect to overview page
-      router.push("/overview")
+      router.push("/")
     } catch (error) {
       console.error("Error submitting candidate:", error)
     } finally {
@@ -200,8 +200,8 @@ export default function RegisterPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Register New Candidate</h1>
-          <p className="text-slate-600">Add a new candidate to the interview pipeline</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">새 지원자 등록</h1>
+          <p className="text-slate-600">면접 파이프라인에 새로운 지원자를 추가하세요</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -210,17 +210,17 @@ export default function RegisterPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-600" />
-                Basic Information
+                기본 정보
               </CardTitle>
-              <CardDescription>Enter the candidate's personal and professional details</CardDescription>
+              <CardDescription>지원자의 개인 정보 및 경력 사항을 입력해주세요</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name">이름 *</Label>
                   <Input
                     id="name"
-                    placeholder="John Doe"
+                    placeholder="홍길동"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     className={errors.name ? "border-red-500" : ""}
@@ -229,11 +229,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email">이메일 주소 *</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="john.doe@email.com"
+                    placeholder="hong.gildong@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className={errors.email ? "border-red-500" : ""}
@@ -244,10 +244,10 @@ export default function RegisterPage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="position">Position *</Label>
+                  <Label htmlFor="position">포지션 *</Label>
                   <Select value={formData.position} onValueChange={(value) => handleInputChange("position", value)}>
                     <SelectTrigger className={errors.position ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select position" />
+                      <SelectValue placeholder="포지션 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {positions.map((position) => (
@@ -261,10 +261,10 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="experience">Experience Level *</Label>
+                  <Label htmlFor="experience">경력 *</Label>
                   <Select value={formData.experience} onValueChange={(value) => handleInputChange("experience", value)}>
                     <SelectTrigger className={errors.experience ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select experience" />
+                      <SelectValue placeholder="경력 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {experienceLevels.map((level) => (
@@ -279,10 +279,10 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
+                <Label htmlFor="location">지역 *</Label>
                 <Input
                   id="location"
-                  placeholder="San Francisco, CA"
+                  placeholder="서울, 대한민국"
                   value={formData.location}
                   onChange={(e) => handleInputChange("location", e.target.value)}
                   className={errors.location ? "border-red-500" : ""}
@@ -291,7 +291,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="skills">Skills & Technologies *</Label>
+                <Label htmlFor="skills">기술 스택 *</Label>
                 <Textarea
                   id="skills"
                   placeholder="React, TypeScript, Node.js, Python, AWS..."
@@ -310,9 +310,9 @@ export default function RegisterPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600" />
-                Resume Upload *
+                이력서 업로드 *
               </CardTitle>
-              <CardDescription>Upload the candidate's resume in PDF or Word format</CardDescription>
+              <CardDescription>PDF 또는 Word 형식의 이력서를 업로드해주세요</CardDescription>
             </CardHeader>
             <CardContent>
               <div
@@ -339,13 +339,13 @@ export default function RegisterPage() {
                   <div className="space-y-2">
                     <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
                     <p className="text-green-700 font-medium">{files.resume.name}</p>
-                    <p className="text-sm text-green-600">Resume uploaded successfully</p>
+                    <p className="text-sm text-green-600">이력서가 성공적으로 업로드되었습니다</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Upload className="h-12 w-12 text-slate-400 mx-auto" />
-                    <p className="text-slate-600">Drag and drop resume here, or click to browse</p>
-                    <p className="text-sm text-slate-500">PDF, DOC, DOCX up to 10MB</p>
+                    <p className="text-slate-600">이력서를 여기에 드래그하거나 클릭하여 파일을 선택하세요</p>
+                    <p className="text-sm text-slate-500">PDF, DOC, DOCX 최대 10MB</p>
                   </div>
                 )}
               </div>
@@ -359,9 +359,9 @@ export default function RegisterPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Github className="h-5 w-5 text-blue-600" />
-                  GitHub Profile
+                  GitHub 프로필
                 </CardTitle>
-                <CardDescription>Link to candidate's GitHub profile</CardDescription>
+                <CardDescription>지원자의 GitHub 프로필 링크</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -377,7 +377,7 @@ export default function RegisterPage() {
                     variant="outline"
                     disabled={!formData.githubUrl}
                   >
-                    Validate Profile
+                    프로필 검증
                   </Button>
                 </div>
 
@@ -385,7 +385,7 @@ export default function RegisterPage() {
                   <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-700">
-                      GitHub profile validated successfully
+                      GitHub 프로필이 성공적으로 검증되었습니다
                     </AlertDescription>
                   </Alert>
                 )}
@@ -397,9 +397,9 @@ export default function RegisterPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <LinkIcon className="h-5 w-5 text-blue-600" />
-                  Portfolio Website
+                  포트폴리오 웹사이트
                 </CardTitle>
-                <CardDescription>Link to candidate's portfolio or personal website</CardDescription>
+                <CardDescription>지원자의 포트폴리오 또는 개인 웹사이트 링크</CardDescription>
               </CardHeader>
               <CardContent>
                 <Input
@@ -416,9 +416,9 @@ export default function RegisterPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ExternalLink className="h-5 w-5 text-blue-600" />
-                Portfolio Files
+                포트폴리오 파일
               </CardTitle>
-              <CardDescription>Upload additional portfolio files, projects, or documents</CardDescription>
+              <CardDescription>추가 포트폴리오 파일, 프로젝트 또는 문서를 업로드하세요</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div
@@ -439,14 +439,14 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Upload className="h-8 w-8 text-slate-400 mx-auto" />
-                  <p className="text-slate-600">Drag and drop files here, or click to browse</p>
-                  <p className="text-sm text-slate-500">Multiple files supported</p>
+                  <p className="text-slate-600">파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
+                  <p className="text-sm text-slate-500">여러 파일 업로드 지원</p>
                 </div>
               </div>
 
               {files.portfolioFiles.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-slate-600">Uploaded Files:</p>
+                  <p className="text-sm font-medium text-slate-600">업로드된 파일:</p>
                   {files.portfolioFiles.map((file, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                       <span className="text-sm text-slate-700">{file.name}</span>
@@ -457,7 +457,7 @@ export default function RegisterPage() {
                         onClick={() => removePortfolioFile(index)}
                         className="text-red-600 hover:text-red-800"
                       >
-                        Remove
+                        제거
                       </Button>
                     </div>
                   ))}
@@ -472,7 +472,7 @@ export default function RegisterPage() {
               <CardContent className="p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Uploading candidate data...</span>
+                    <span>지원자 정보 업로드 중...</span>
                     <span>{uploadProgress}%</span>
                   </div>
                   <Progress value={uploadProgress} className="w-full" />
@@ -486,14 +486,14 @@ export default function RegisterPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/overview")}
+              onClick={() => router.push("/")}
               disabled={isSubmitting}
               className="bg-transparent"
             >
-              Cancel
+              취소
             </Button>
             <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 px-8">
-              {isSubmitting ? "Registering..." : "Register Candidate"}
+              {isSubmitting ? "등록 중..." : "지원자 등록"}
             </Button>
           </div>
         </form>
