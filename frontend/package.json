@@ -1,5 +1,5 @@
 {
-  "name": "interview-mate",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,21 +11,20 @@
   "dependencies": {
     "@google-cloud/speech": "^7.2.0",
     "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
-    "@types/ws": "^8.18.1",
+    "@radix-ui/react-tabs": "^1.1.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.525.0",
     "next": "15.2.4",
-    "node-record-lpcm16": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.1.0",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7",
-    "ws": "^8.18.3"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
