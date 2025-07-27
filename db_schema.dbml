@@ -1,0 +1,83 @@
+Table manager {
+  id integer [primary key]
+}
+
+Table interview {
+  id integer [primary key]
+  manager_id integer [not null, ref: - manager.id]
+  applicant_id integer [ref: - applicant.id]
+  done_at timestamp
+}
+
+Table conversation {
+  id integer [primary key]
+  interview_id integer [not null, ref: > interview.id]
+  content varchar [not null]
+  is_manager bool [not null]
+}
+
+Table applicant {
+  id integer [primary key]
+  username varchar
+  email varchar
+  position_id integer [not null, ref: - position.id]
+  experience_id integer [not null, ref: - experience.id]
+  location varchar
+  resume_file_path varchar
+  github_url varchar
+  portfolio_url varchar
+  portfolio_file_path varchar
+  apply_at timestamp
+}
+
+Table applicant_tech {
+  applicant_id integer [ref: - applicant.id]
+  tech_stack_id integer [ref: - tech_stack.id]
+}
+
+Table pre_report {
+  id integer [primary key]
+  applicant_id integer [ref: - applicant.id]
+  work_history_id integer [ref: > work_history.id]
+  project_history_id integer [ref: > project_history.id]
+  description varchar [note: '평가']
+}
+
+Table post_report {
+  id integer [primary key]
+  interview_id integer [ref: - interview.id]
+  score integer
+  description varchar [note: '평가']
+}
+
+Table work_history {
+  id integer [primary key]
+  applicant_id integer [ref: - applicant.id]
+  company_name varchar
+  position_id integer [not null, ref: - position.id]
+  start_date date
+  end_date date
+}
+
+Table project_history {
+  id integer [primary key]
+  applicant_id integer [ref: - applicant.id]
+  title varchar
+  description varchar
+  tech_stack_id integer [not null, ref: > tech_stack.id]
+}
+
+Table tech_stack {
+  id integer [primary key]
+  title varchar
+}
+
+Table experience {
+  id integer [primary key, note: '이름 좀 아쉬움']
+  title varchar [not null]
+}
+
+Table position {
+  id integer [primary key]
+  title varchar [not null, note: '포지션 이름 ex) 프론트, 백, AI']
+}
