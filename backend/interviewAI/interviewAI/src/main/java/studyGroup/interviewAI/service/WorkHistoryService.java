@@ -30,4 +30,9 @@ public class WorkHistoryService {
     public void deleteById(Long id) {
         workHistoryRepository.deleteById(id);
     }
+
+    // 특정 지원자의 경력 조회
+    public List<WorkHistory> findByApplicantId(Long applicantId) {
+        return workHistoryRepository.findByApplicantId(applicantId);
+    }
 } 

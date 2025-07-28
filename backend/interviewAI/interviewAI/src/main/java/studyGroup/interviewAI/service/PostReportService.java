@@ -30,4 +30,14 @@ public class PostReportService {
     public void deleteById(Long id) {
         postReportRepository.deleteById(id);
     }
+
+    // 특정 면접의 평가 조회
+    public Optional<PostReport> findByInterviewId(Long interviewId) {
+        return postReportRepository.findByInterviewId(interviewId);
+    }
+
+    // 평균 점수 조회
+    public Double getAverageScore() {
+        return postReportRepository.findAverageScore();
+    }
 } 

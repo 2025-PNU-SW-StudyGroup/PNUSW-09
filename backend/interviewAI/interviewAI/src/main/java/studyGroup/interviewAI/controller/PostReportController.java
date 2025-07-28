@@ -17,7 +17,7 @@ public class PostReportController {
     }
 
     @GetMapping
-    public List<PostReport> getPostReports() {
+    public List<PostReport> getAllPostReports() {
         return postReportService.findAll();
     }
 
@@ -31,8 +31,20 @@ public class PostReportController {
         return postReportService.save(postReport);
     }
 
+    @PutMapping("/{id}")
+    public PostReport updatePostReport(@PathVariable Long id, @RequestBody PostReport postReport) {
+        postReport.setId(id);
+        return postReportService.save(postReport);
+    }
+
     @DeleteMapping("/{id}")
     public void deletePostReport(@PathVariable Long id) {
         postReportService.deleteById(id);
+    }
+
+    // 특정 면접의 평가 조회
+    @GetMapping("/interview/{interviewId}")
+    public Optional<PostReport> getPostReportByInterviewId(@PathVariable Long interviewId) {
+        return postReportService.findByInterviewId(interviewId);
     }
 } 

@@ -27,7 +27,17 @@ public class ApplicantTechService {
         return applicantTechRepository.save(applicantTech);
     }
 
+    // 배치 저장: 여러 기술스택 한 번에 저장
+    public List<ApplicantTech> saveAll(List<ApplicantTech> applicantTechs) {
+        return applicantTechRepository.saveAll(applicantTechs);
+    }
+
     public void deleteById(Long id) {
         applicantTechRepository.deleteById(id);
+    }
+
+    // 특정 지원자의 기술스택 조회
+    public List<ApplicantTech> findByApplicantId(Long applicantId) {
+        return applicantTechRepository.findByApplicantId(applicantId);
     }
 } 

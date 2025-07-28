@@ -30,4 +30,9 @@ public class ProjectHistoryService {
     public void deleteById(Long id) {
         projectHistoryRepository.deleteById(id);
     }
+
+    // 특정 지원자의 프로젝트 조회
+    public List<ProjectHistory> findByApplicantId(Long applicantId) {
+        return projectHistoryRepository.findByApplicantId(applicantId);
+    }
 } 

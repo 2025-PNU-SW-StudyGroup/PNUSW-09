@@ -17,7 +17,7 @@ public class ExperienceController {
     }
 
     @GetMapping
-    public List<Experience> getExperiences() {
+    public List<Experience> getAllExperiences() {
         return experienceService.findAll();
     }
 
@@ -28,6 +28,12 @@ public class ExperienceController {
 
     @PostMapping
     public Experience createExperience(@RequestBody Experience experience) {
+        return experienceService.save(experience);
+    }
+
+    @PutMapping("/{id}")
+    public Experience updateExperience(@PathVariable Long id, @RequestBody Experience experience) {
+        experience.setId(id);
         return experienceService.save(experience);
     }
 

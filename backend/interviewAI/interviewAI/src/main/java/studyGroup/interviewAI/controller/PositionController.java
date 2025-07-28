@@ -17,7 +17,7 @@ public class PositionController {
     }
 
     @GetMapping
-    public List<Position> getPositions() {
+    public List<Position> getAllPositions() {
         return positionService.findAll();
     }
 
@@ -28,6 +28,12 @@ public class PositionController {
 
     @PostMapping
     public Position createPosition(@RequestBody Position position) {
+        return positionService.save(position);
+    }
+
+    @PutMapping("/{id}")
+    public Position updatePosition(@PathVariable Long id, @RequestBody Position position) {
+        position.setId(id);
         return positionService.save(position);
     }
 

@@ -18,19 +18,19 @@ public class Applicant {
     private String portfolioFilePath;
     private LocalDateTime applyAt;
 
-    // 관계 매핑은 나중에 추가
-    // @ManyToOne
-    // @JoinColumn(name = "position_id", nullable = false)
-    // private Position position;
+    @ManyToOne
+    @JoinColumn(name = "position_id", nullable = false)
+    private Position position;
 
-    // @ManyToOne
-    // @JoinColumn(name = "experience_id", nullable = false)
-    // private Experience experience;
+    @ManyToOne
+    @JoinColumn(name = "experience_id", nullable = false)
+    private Experience experience;
 
-    // Getter and Setter
+    // Getters and Setters
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -38,6 +38,7 @@ public class Applicant {
     public String getUsername() {
         return username;
     }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -45,6 +46,7 @@ public class Applicant {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -52,6 +54,7 @@ public class Applicant {
     public String getLocation() {
         return location;
     }
+
     public void setLocation(String location) {
         this.location = location;
     }
@@ -59,6 +62,7 @@ public class Applicant {
     public String getResumeFilePath() {
         return resumeFilePath;
     }
+
     public void setResumeFilePath(String resumeFilePath) {
         this.resumeFilePath = resumeFilePath;
     }
@@ -66,6 +70,7 @@ public class Applicant {
     public String getGithubUrl() {
         return githubUrl;
     }
+
     public void setGithubUrl(String githubUrl) {
         this.githubUrl = githubUrl;
     }
@@ -73,6 +78,7 @@ public class Applicant {
     public String getPortfolioUrl() {
         return portfolioUrl;
     }
+
     public void setPortfolioUrl(String portfolioUrl) {
         this.portfolioUrl = portfolioUrl;
     }
@@ -80,6 +86,7 @@ public class Applicant {
     public String getPortfolioFilePath() {
         return portfolioFilePath;
     }
+
     public void setPortfolioFilePath(String portfolioFilePath) {
         this.portfolioFilePath = portfolioFilePath;
     }
@@ -87,7 +94,24 @@ public class Applicant {
     public LocalDateTime getApplyAt() {
         return applyAt;
     }
+
     public void setApplyAt(LocalDateTime applyAt) {
         this.applyAt = applyAt;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public Experience getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Experience experience) {
+        this.experience = experience;
     }
 }

@@ -17,7 +17,7 @@ public class ApplicantTechController {
     }
 
     @GetMapping
-    public List<ApplicantTech> getApplicantTechs() {
+    public List<ApplicantTech> getAllApplicantTechs() {
         return applicantTechService.findAll();
     }
 
@@ -29,6 +29,12 @@ public class ApplicantTechController {
     @PostMapping
     public ApplicantTech createApplicantTech(@RequestBody ApplicantTech applicantTech) {
         return applicantTechService.save(applicantTech);
+    }
+
+    // 배치 등록: 여러 기술스택 한 번에 등록
+    @PostMapping("/batch")
+    public List<ApplicantTech> createApplicantTechsBatch(@RequestBody List<ApplicantTech> applicantTechs) {
+        return applicantTechService.saveAll(applicantTechs);
     }
 
     @DeleteMapping("/{id}")
