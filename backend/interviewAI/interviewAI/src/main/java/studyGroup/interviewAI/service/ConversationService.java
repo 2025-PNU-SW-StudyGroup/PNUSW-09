@@ -30,4 +30,9 @@ public class ConversationService {
     public void deleteById(Long id) {
         conversationRepository.deleteById(id);
     }
+
+    // 특정 면접의 대화 조회
+    public List<Conversation> findByInterviewId(Long interviewId) {
+        return conversationRepository.findByInterviewIdOrderById(interviewId);
+    }
 } 

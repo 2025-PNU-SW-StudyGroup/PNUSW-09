@@ -30,4 +30,9 @@ public class PreReportService {
     public void deleteById(Long id) {
         preReportRepository.deleteById(id);
     }
+
+    // 특정 지원자의 사전평가 조회
+    public List<PreReport> findByApplicantId(Long applicantId) {
+        return preReportRepository.findByApplicantId(applicantId);
+    }
 } 

@@ -17,7 +17,7 @@ public class ConversationController {
     }
 
     @GetMapping
-    public List<Conversation> getConversations() {
+    public List<Conversation> getAllConversations() {
         return conversationService.findAll();
     }
 
@@ -28,6 +28,12 @@ public class ConversationController {
 
     @PostMapping
     public Conversation createConversation(@RequestBody Conversation conversation) {
+        return conversationService.save(conversation);
+    }
+
+    @PutMapping("/{id}")
+    public Conversation updateConversation(@PathVariable Long id, @RequestBody Conversation conversation) {
+        conversation.setId(id);
         return conversationService.save(conversation);
     }
 

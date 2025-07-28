@@ -16,21 +16,27 @@ public class ApplicantTech {
     @JoinColumn(name = "tech_stack_id")
     private TechStack techStack;
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
+
     public Applicant getApplicant() {
         return applicant;
     }
+
     public void setApplicant(Applicant applicant) {
         this.applicant = applicant;
     }
+
     public TechStack getTechStack() {
         return techStack;
     }
+
     public void setTechStack(TechStack techStack) {
         this.techStack = techStack;
     }

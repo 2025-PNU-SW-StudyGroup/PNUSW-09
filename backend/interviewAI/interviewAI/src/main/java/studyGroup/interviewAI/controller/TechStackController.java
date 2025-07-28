@@ -17,7 +17,7 @@ public class TechStackController {
     }
 
     @GetMapping
-    public List<TechStack> getTechStacks() {
+    public List<TechStack> getAllTechStacks() {
         return techStackService.findAll();
     }
 
@@ -28,6 +28,12 @@ public class TechStackController {
 
     @PostMapping
     public TechStack createTechStack(@RequestBody TechStack techStack) {
+        return techStackService.save(techStack);
+    }
+
+    @PutMapping("/{id}")
+    public TechStack updateTechStack(@PathVariable Long id, @RequestBody TechStack techStack) {
+        techStack.setId(id);
         return techStackService.save(techStack);
     }
 
