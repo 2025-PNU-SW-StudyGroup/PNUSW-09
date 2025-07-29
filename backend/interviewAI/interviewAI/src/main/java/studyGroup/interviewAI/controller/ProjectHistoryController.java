@@ -5,6 +5,7 @@ import studyGroup.interviewAI.entity.ProjectHistory;
 import studyGroup.interviewAI.service.ProjectHistoryService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -17,7 +18,7 @@ public class ProjectHistoryController {
     }
 
     @GetMapping
-    public List<ProjectHistory> getProjectHistories() {
+    public List<ProjectHistory> getAllProjectHistories() {
         return projectHistoryService.findAll();
     }
 
@@ -26,13 +27,26 @@ public class ProjectHistoryController {
         return projectHistoryService.findById(id);
     }
 
+    // 여러 기술스택을 포함한 프로젝트 생성 (메인 엔드포인트)
     @PostMapping
-    public ProjectHistory createProjectHistory(@RequestBody ProjectHistory projectHistory) {
+    public ProjectHistory createProjectWithTechStacks(@RequestBody Map<String, Object> requestData) {
+        return projectHistoryService.saveWithMultipleTechStacks(requestData);
+    }
+
+    @PutMapping("/{id}")
+    public ProjectHistory updateProjectHistory(@PathVariable Long id, @RequestBody ProjectHistory projectHistory) {
+        projectHistory.setId(id);
         return projectHistoryService.save(projectHistory);
     }
 
     @DeleteMapping("/{id}")
     public void deleteProjectHistory(@PathVariable Long id) {
         projectHistoryService.deleteById(id);
+    }
+
+    // 특정 지원자의 프로젝트 조회
+    @GetMapping("/applicant/{applicantId}")
+    public List<ProjectHistory> getProjectHistoriesByApplicant(@PathVariable Long applicantId) {
+        return projectHistoryService.findByApplicantId(applicantId);
     }
 } 
