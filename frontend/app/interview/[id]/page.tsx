@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { API_CONFIG, getApiUrl } from "@/lib/config"
 import { getCandidateById } from "@/lib/mock-data"
 import { ArrowRight, Bot, Clock, Mic, MicOff, Play, Plus, Square, User, Volume2 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import useSWRMutation from "swr/mutation"
 
 interface Message {
   id: string
@@ -28,10 +30,33 @@ interface Question {
   followUps: string[]
 }
 
+// API fetcher 함수
+const updateStatusFetcher = async (url: string, { arg }: { arg: { status: string } }) => {
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(arg),
+  })
+
+  if (!response.ok) {
+    throw new Error(`상태 변경 실패: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 export default function LiveInterviewPage() {
   const params = useParams()
   const candidateId = params.id as string
   const candidate = getCandidateById(candidateId)
+
+  // SWR Mutation 훅
+  const { trigger: updateStatus, isMutating: isUpdatingStatus } = useSWRMutation(
+    getApiUrl(API_CONFIG.ENDPOINTS.UPDATE_STATUS.replace('{id}', candidateId)),
+    updateStatusFetcher
+  )
 
   const [isRecording, setIsRecording] = useState(false)
   const [isInterviewStarted, setIsInterviewStarted] = useState(false)
@@ -288,18 +313,30 @@ export default function LiveInterviewPage() {
     }
   }
 
-  const startInterview = () => {
-    setIsInterviewStarted(true)
+  const startInterview = async () => {
+    try {
+      // SWR Mutation을 사용한 상태 변경
+      await updateStatus({ status: 'INTERVIEWING' })
+      
+      console.log('상태가 INTERVIEWING으로 변경되었습니다')
+      
+      // 기존 로직 실행
+      setIsInterviewStarted(true)
 
-    // Add welcome message
-    const welcomeMessage: Message = {
-      id: "welcome",
-      sender: "interviewer",
-      content: `안녕하세요 ${candidate?.name}님! 기술 면접에 오신 것을 환영합니다. ${candidate?.position} 분야의 경력을 검토해보았습니다. 먼저 본인의 경험에 대해 간단히 소개해 주세요.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      // Add welcome message
+      const welcomeMessage: Message = {
+        id: "welcome",
+        sender: "interviewer",
+        content: `안녕하세요! 기술 면접에 오신 것을 환영합니다. 지원해주신 포지션의 경력을 검토해보았습니다. 먼저 본인의 경험에 대해 간단히 소개해 주세요.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      }
+
+      setMessages([welcomeMessage])
+      
+    } catch (error) {
+      console.error('면접 시작 중 오류 발생:', error)
+      alert('면접을 시작할 수 없습니다. 다시 시도해주세요.')
     }
-
-    setMessages([welcomeMessage])
   }
 
   const stopInterview = () => {
@@ -369,14 +406,14 @@ export default function LiveInterviewPage() {
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
                     <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
-                      {candidate.name
+                      {candidate.username
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h2 className="font-semibold text-slate-800">{candidate.name}</h2>
+                    <h2 className="font-semibold text-slate-800">{candidate.username}</h2>
                     <p className="text-sm text-slate-600">{candidate.position}</p>
                   </div>
                 </div>
@@ -406,9 +443,13 @@ export default function LiveInterviewPage() {
                 </Button>
 
                 {!isInterviewStarted ? (
-                  <Button onClick={startInterview} className="bg-green-600 hover:bg-green-700">
+                  <Button 
+                    onClick={startInterview} 
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={isUpdatingStatus}
+                  >
                     <Play className="h-4 w-4 mr-2" />
-                    면접 시작
+                    {isUpdatingStatus ? "시작 중..." : "면접 시작"}
                   </Button>
                 ) : (
                   <Link href={`/candidates/${candidate.id}`}>
