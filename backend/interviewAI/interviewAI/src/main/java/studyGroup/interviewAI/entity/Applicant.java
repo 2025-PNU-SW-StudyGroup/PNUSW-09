@@ -2,6 +2,8 @@ package studyGroup.interviewAI.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Applicant {
@@ -18,6 +20,11 @@ public class Applicant {
     private String portfolioFilePath;
     private LocalDateTime applyAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApplicationStatus status;
+
+
     @ManyToOne
     @JoinColumn(name = "position_id", nullable = false)
     private Position position;
@@ -25,6 +32,9 @@ public class Applicant {
     @ManyToOne
     @JoinColumn(name = "experience_id", nullable = false)
     private Experience experience;
+
+    @OneToMany(mappedBy = "applicant", fetch = FetchType.LAZY)
+    private List<ApplicantTech> applicantTechs = new ArrayList<>();
 
     // Getters and Setters
     public Long getId() {
@@ -113,5 +123,21 @@ public class Applicant {
 
     public void setExperience(Experience experience) {
         this.experience = experience;
+    }
+
+    public ApplicationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ApplicationStatus status) {
+        this.status = status;
+    }
+
+    public List<ApplicantTech> getApplicantTechs() {
+        return applicantTechs;
+    }
+
+    public void setApplicantTechs(List<ApplicantTech> applicantTechs) {
+        this.applicantTechs = applicantTechs;
     }
 }

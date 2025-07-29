@@ -21,4 +21,21 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
            "JOIN FETCH a.experience " +
            "WHERE a.id = :id")
     Optional<Applicant> findByIdWithPositionAndExperience(Long id);
+    
+    // 모든 연관 엔티티와 기술스택까지 함께 조회
+    @Query("SELECT DISTINCT a FROM Applicant a " +
+           "JOIN FETCH a.position " +
+           "JOIN FETCH a.experience " +
+           "LEFT JOIN FETCH a.applicantTechs at " +
+           "LEFT JOIN FETCH at.techStack")
+    List<Applicant> findAllWithAllRelations();
+    
+    // ID로 모든 연관 엔티티와 기술스택까지 함께 조회
+    @Query("SELECT DISTINCT a FROM Applicant a " +
+           "JOIN FETCH a.position " +
+           "JOIN FETCH a.experience " +
+           "LEFT JOIN FETCH a.applicantTechs at " +
+           "LEFT JOIN FETCH at.techStack " +
+           "WHERE a.id = :id")
+    Optional<Applicant> findByIdWithAllRelations(Long id);
 } 
