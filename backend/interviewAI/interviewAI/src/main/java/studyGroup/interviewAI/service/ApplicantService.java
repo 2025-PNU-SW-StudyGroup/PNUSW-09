@@ -2,6 +2,7 @@ package studyGroup.interviewAI.service;
 
 import org.springframework.stereotype.Service;
 import studyGroup.interviewAI.entity.Applicant;
+import studyGroup.interviewAI.entity.ApplicationStatus;
 import studyGroup.interviewAI.entity.TechStack;
 import studyGroup.interviewAI.entity.WorkHistory;
 import studyGroup.interviewAI.entity.ProjectHistory;
@@ -46,11 +47,11 @@ public class ApplicantService {
     }
 
     public List<Applicant> findAll() {
-        return applicantRepository.findAllWithPositionAndExperience();
+        return applicantRepository.findAllWithAllRelations();
     }
 
     public Optional<Applicant> findById(Long id) {
-        return applicantRepository.findByIdWithPositionAndExperience(id);
+        return applicantRepository.findByIdWithAllRelations(id);
     }
 
     public Applicant save(Applicant applicant) {
@@ -125,5 +126,19 @@ public class ApplicantService {
     // 지원자의 프로젝트 이력 조회
     public List<ProjectHistory> findProjectHistoriesByApplicantId(Long applicantId) {
         return projectHistoryRepository.findByApplicantId(applicantId);
+    }
+
+    // 지원자 상태 업데이트
+    public Applicant updateStatus(Long id, ApplicationStatus status) {
+        Optional<Applicant> applicantOpt = applicantRepository.findByIdWithAllRelations(id);
+        if (applicantOpt.isPresent()) {
+            Applicant applicant = applicantOpt.get();
+            applicant.setStatus(status);
+            applicantRepository.save(applicant);
+            // 저장 후 다시 모든 관계를 포함하여 조회
+            return applicantRepository.findByIdWithAllRelations(id).orElse(applicant);
+        } else {
+            throw new RuntimeException("지원자를 찾을 수 없습니다: " + id);
+        }
     }
 } 
