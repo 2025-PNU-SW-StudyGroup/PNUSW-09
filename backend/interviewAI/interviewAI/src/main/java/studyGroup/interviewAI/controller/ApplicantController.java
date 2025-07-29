@@ -1,12 +1,16 @@
 package studyGroup.interviewAI.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import studyGroup.interviewAI.entity.Applicant;
 import studyGroup.interviewAI.entity.TechStack;
 import studyGroup.interviewAI.entity.WorkHistory;
 import studyGroup.interviewAI.entity.ProjectHistory;
 import studyGroup.interviewAI.service.ApplicantService;
+import studyGroup.interviewAI.service.FileUploadService;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +20,11 @@ import java.util.Optional;
 @RequestMapping("/api/applicants")
 public class ApplicantController {
     private final ApplicantService applicantService;
+    private final FileUploadService fileUploadService;
 
-    public ApplicantController(ApplicantService applicantService) {
+    public ApplicantController(ApplicantService applicantService, FileUploadService fileUploadService) {
         this.applicantService = applicantService;
+        this.fileUploadService = fileUploadService;
     }
 
     @GetMapping
@@ -133,5 +139,16 @@ public class ApplicantController {
     @GetMapping("/{id}/project-histories")
     public List<ProjectHistory> getApplicantProjectHistories(@PathVariable Long id) {
         return applicantService.findProjectHistoriesByApplicantId(id);
+    }
+
+    // 이력서 파일 업로드
+    @PostMapping("/{id}/upload-resume")
+    public ResponseEntity<String> uploadResume(@RequestParam("file") MultipartFile file) {
+        try {
+            String filePath = fileUploadService.uploadResumeFile(file);
+            return ResponseEntity.ok(filePath);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("파일 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 } 
