@@ -7,45 +7,80 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { API_CONFIG, getApiUrl } from "@/lib/config"
 import { CheckCircle, ExternalLink, FileText, Github, LinkIcon, Upload, User } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import useSWR from "swr"
 
 interface FormData {
-  name: string
+  username: string
   email: string
-  position: string
-  experience: string
+  positionId: number | null
+  experienceId: number | null
   location: string
   githubUrl: string
   portfolioUrl: string
-  skills: string
+  techStackIds: number[]
+  resumeFilePath: string
+  portfolioFilePath: string
+}
+
+interface FormErrors {
+  username?: string
+  email?: string
+  positionId?: string
+  experienceId?: string
+  location?: string
+  githubUrl?: string
+  portfolioUrl?: string
+  techStackIds?: string
+  resumeFilePath?: string
+  portfolioFilePath?: string
 }
 
 interface FileUpload {
   resume: File | null
-  portfolioFiles: File[]
+  portfolio: File | null
 }
+
+interface TechStack {
+  id: number
+  title: string
+}
+
+interface Experience {
+  id: number
+  title: string
+}
+
+interface Position {
+  id: number
+  title: string
+}
+
+// fetcher 함수 추가
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState<FormData>({
-    name: "",
+    username: "",
     email: "",
-    position: "",
-    experience: "",
+    positionId: null,
+    experienceId: null,
     location: "",
     githubUrl: "",
     portfolioUrl: "",
-    skills: "",
+    techStackIds: [],
+    resumeFilePath: "",
+    portfolioFilePath: "",
   })
 
   const [files, setFiles] = useState<FileUpload>({
     resume: null,
-    portfolioFiles: [],
+    portfolio: null,
   })
 
   const [dragActive, setDragActive] = useState({
@@ -53,27 +88,74 @@ export default function RegisterPage() {
     portfolio: false,
   })
 
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Partial<FormData>>({})
+  const [errors, setErrors] = useState<FormErrors>({})
   const [githubValidated, setGithubValidated] = useState(false)
+  
+  // 이력서 업로드 상태 관리
+  const [resumeUploadState, setResumeUploadState] = useState<{
+    uploading: boolean
+    uploaded: boolean
+    error: string | null
+    fileName: string
+  }>({
+    uploading: false,
+    uploaded: false,
+    error: null,
+    fileName: ""
+  })
 
-  const positions = [
-    "프론트엔드 개발자",
-    "백엔드 개발자", 
-    "풀스택 엔지니어",
-    "모바일 개발자",
-    "DevOps 엔지니어",
-    "데이터 엔지니어",
-    "UI/UX 디자이너",
-    "제품 매니저",
-  ]
+  // 포트폴리오 업로드 상태 관리 (단일 파일)
+  const [portfolioUploadState, setPortfolioUploadState] = useState<{
+    uploading: boolean
+    uploaded: boolean
+    error: string | null
+    fileName: string
+  }>({
+    uploading: false,
+    uploaded: false,
+    error: null,
+    fileName: ""
+  })
 
-  const experienceLevels = ["1-2년", "3-4년", "5-7년", "8년 이상"]
+  // SWR로 기술 스택 데이터 가져오기
+  const { data: techStacks = [], error: techStacksError, isLoading: loadingTechStacks } = useSWR<TechStack[]>(
+    getApiUrl(API_CONFIG.ENDPOINTS.TECH_STACKS),
+    fetcher
+  )
+  
+  // SWR로 경험 데이터 가져오기
+  const { data: experiences = [], error: experiencesError, isLoading: loadingExperiences } = useSWR<Experience[]>(
+    getApiUrl(API_CONFIG.ENDPOINTS.EXPERIENCES),
+    fetcher
+  )
+
+  // SWR로 포지션 데이터 가져오기
+  const { data: positions = [], error: positionsError, isLoading: loadingPositions } = useSWR<Position[]>(
+    getApiUrl(API_CONFIG.ENDPOINTS.POSITIONS),
+    fetcher
+  )
+  
+  const [selectedTechStackIds, setSelectedTechStackIds] = useState<number[]>([])
+
+  // 선택된 기술 스택 ID가 변경될 때 formData.techStackIds 업데이트
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, techStackIds: selectedTechStackIds }))
+  }, [selectedTechStackIds])
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [field as keyof FormErrors]: undefined }))
+    }
+  }
+
+  // ID 값을 위한 별도 핸들러
+  const handleIdChange = (field: 'positionId' | 'experienceId', value: string) => {
+    const numericValue = value ? parseInt(value, 10) : null
+    setFormData((prev) => ({ ...prev, [field]: numericValue }))
+    // Clear error when user selects
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
@@ -89,6 +171,120 @@ export default function RegisterPage() {
     }
   }
 
+  // 이력서 업로드 함수
+  const uploadResume = async (file: File) => {
+    setResumeUploadState(prev => ({ ...prev, uploading: true, error: null }))
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.UPLOAD_RESUME), {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('파일 업로드에 실패했습니다')
+      }
+      
+      const filePath = await response.text() // 백엔드에서 string으로 응답
+      
+      // 성공 시 상태 업데이트
+      setResumeUploadState({
+        uploading: false,
+        uploaded: true,
+        error: null,
+        fileName: file.name
+      })
+      
+      // FormData에 파일 경로 저장
+      setFormData(prev => ({ ...prev, resumeFilePath: filePath }))
+      
+      // 에러 클리어
+      if (errors.resumeFilePath) {
+        setErrors(prev => ({ ...prev, resumeFilePath: undefined }))
+      }
+      
+    } catch (error) {
+      setResumeUploadState({
+        uploading: false,
+        uploaded: false,
+        error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다',
+        fileName: ""
+      })
+      
+      // FormData에서 경로 제거
+      setFormData(prev => ({ ...prev, resumeFilePath: "" }))
+    }
+  }
+
+  // 포트폴리오 업로드 함수
+  const uploadPortfolio = async (file: File) => {
+    setPortfolioUploadState(prev => ({ ...prev, uploading: true }))
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.UPLOAD_PORTFOLIO), {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('파일 업로드에 실패했습니다')
+      }
+      
+      const filePath = await response.text() // 백엔드에서 string으로 응답
+      
+      // 성공 시 상태 업데이트
+      setPortfolioUploadState(prev => ({
+        ...prev,
+        uploading: false,
+        uploaded: true,
+        error: null,
+        fileName: file.name
+      }))
+      
+      // FormData에 파일 경로 추가
+      setFormData(prev => ({ 
+        ...prev, 
+        portfolioFilePath: filePath 
+      }))
+      
+    } catch (error) {
+      setPortfolioUploadState(prev => ({
+        ...prev,
+        uploading: false,
+        error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다',
+        fileName: ""
+      }))
+      
+      // FormData에서 경로 제거
+      setFormData(prev => ({ ...prev, portfolioFilePath: "" }))
+    }
+  }
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>, type: "resume" | "portfolio") => {
+    const selectedFiles = Array.from(e.target.files || [])
+
+    if (type === "resume") {
+      const file = selectedFiles[0]
+      if (file) {
+        setFiles((prev) => ({ ...prev, resume: file }))
+        // 파일 선택 즉시 업로드
+        uploadResume(file)
+      }
+    } else {
+      if (selectedFiles.length > 0) {
+        setFiles((prev) => ({ ...prev, portfolio: selectedFiles[0] }))
+        // 파일 선택 즉시 업로드
+        uploadPortfolio(selectedFiles[0])
+      }
+    }
+  }
+
   const handleDrop = (e: React.DragEvent, type: "resume" | "portfolio") => {
     e.preventDefault()
     e.stopPropagation()
@@ -100,30 +296,16 @@ export default function RegisterPage() {
       const file = droppedFiles[0]
       if (file && (file.type === "application/pdf" || file.type.includes("word"))) {
         setFiles((prev) => ({ ...prev, resume: file }))
+        // 드롭된 파일 즉시 업로드
+        uploadResume(file)
       }
     } else {
-      setFiles((prev) => ({ ...prev, portfolioFiles: [...prev.portfolioFiles, ...droppedFiles] }))
-    }
-  }
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>, type: "resume" | "portfolio") => {
-    const selectedFiles = Array.from(e.target.files || [])
-
-    if (type === "resume") {
-      const file = selectedFiles[0]
-      if (file) {
-        setFiles((prev) => ({ ...prev, resume: file }))
+      if (droppedFiles.length > 0) {
+        setFiles((prev) => ({ ...prev, portfolio: droppedFiles[0] }))
+        // 드롭된 파일 즉시 업로드
+        uploadPortfolio(droppedFiles[0])
       }
-    } else {
-      setFiles((prev) => ({ ...prev, portfolioFiles: [...prev.portfolioFiles, ...selectedFiles] }))
     }
-  }
-
-  const removePortfolioFile = (index: number) => {
-    setFiles((prev) => ({
-      ...prev,
-      portfolioFiles: prev.portfolioFiles.filter((_, i) => i !== index),
-    }))
   }
 
   const validateGithub = () => {
@@ -132,33 +314,37 @@ export default function RegisterPage() {
     }
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {}
+  // 기술 스택 선택/해제 핸들러
+  const toggleTechStack = (techId: number) => {
+    setSelectedTechStackIds((prev) => {
+      const newSelected = prev.includes(techId)
+        ? prev.filter(id => id !== techId)
+        : [...prev, techId]
+      
+      // skillIds 에러 클리어
+      if (errors.techStackIds && newSelected.length > 0) {
+        setErrors((prevErrors) => ({ ...prevErrors, techStackIds: undefined }))
+      }
+      
+      return newSelected
+    })
+  }
 
-    if (!formData.name.trim()) newErrors.name = "이름을 입력해주세요"
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
+    if (!formData.username.trim()) newErrors.username = "이름을 입력해주세요"
     if (!formData.email.trim()) newErrors.email = "이메일을 입력해주세요"
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "유효하지 않은 이메일 형식입니다"
-    if (!formData.position) newErrors.position = "포지션을 선택해주세요"
-    if (!formData.experience) newErrors.experience = "경력을 선택해주세요"
+    if (!formData.positionId) newErrors.positionId = "포지션을 선택해주세요"
+    if (!formData.experienceId) newErrors.experienceId = "경력을 선택해주세요"
     if (!formData.location.trim()) newErrors.location = "지역을 입력해주세요"
-    if (!formData.skills.trim()) newErrors.skills = "기술 스택을 입력해주세요"
+    if (formData.techStackIds.length === 0) newErrors.techStackIds = "기술 스택을 선택해주세요"
+    if (!formData.resumeFilePath.trim()) newErrors.resumeFilePath = "이력서를 업로드해주세요"
+    if (!formData.portfolioFilePath.trim()) newErrors.portfolioFilePath = "포트폴리오를 업로드해주세요"
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
-
-  const simulateUpload = () => {
-    return new Promise<void>((resolve) => {
-      let progress = 0
-      const interval = setInterval(() => {
-        progress += 10
-        setUploadProgress(progress)
-        if (progress >= 100) {
-          clearInterval(interval)
-          resolve()
-        }
-      }, 150)
-    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -168,30 +354,99 @@ export default function RegisterPage() {
       return
     }
 
-    if (!files.resume) {
-      setErrors({ name: "이력서를 업로드해주세요" })
+    if (!resumeUploadState.uploaded) {
+      setErrors({ resumeFilePath: "이력서를 업로드해주세요" })
+      return
+    }
+
+    if (!portfolioUploadState.uploaded) {
+      setErrors({ portfolioFilePath: "포트폴리오를 업로드해주세요" })
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      // Simulate file upload
-      await simulateUpload()
+      console.log("Sending registration request to:", getApiUrl(API_CONFIG.ENDPOINTS.REGISTER))
+      
+      // 실제 사용자 등록 API 호출
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.REGISTER), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          positionId: formData.positionId,
+          experienceId: formData.experienceId,
+          location: formData.location,
+          githubUrl: formData.githubUrl,
+          portfolioUrl: formData.portfolioUrl,
+          techStackIds: formData.techStackIds,
+          resumeFilePath: formData.resumeFilePath,
+          portfolioFilePath: formData.portfolioFilePath,
+        }),
+      })
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      console.log("Response status:", response.status)
+      console.log("Response headers:", response.headers)
 
-      // In a real app, you would send the data to your API here
-      console.log("Submitting candidate:", { formData, files })
+      if (!response.ok) {
+        // 상세한 에러 정보 가져오기
+        let errorMessage = `등록에 실패했습니다 (${response.status})`
+        try {
+          const errorText = await response.text()
+          if (errorText) {
+            errorMessage += `: ${errorText}`
+          }
+        } catch (e) {
+          // 에러 텍스트를 읽을 수 없는 경우 무시
+        }
+        throw new Error(errorMessage)
+      }
 
-      // Redirect to overview page
+      // 성공 응답 처리
+      const contentType = response.headers.get('content-type')
+      let result
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json()
+      } else {
+        result = await response.text()
+      }
+      
+      console.log("Registration successful:", result)
+      
+      // 성공 알림 (선택적)
+      alert("지원자 등록이 성공적으로 완료되었습니다!")
+
+      // 성공 시 메인 페이지로 이동
       router.push("/")
+      
     } catch (error) {
       console.error("Error submitting candidate:", error)
+      
+      // 네트워크 에러와 서버 에러 구분
+      let errorMessage = "등록 중 오류가 발생했습니다"
+      
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to fetch")) {
+          errorMessage = "서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      setErrors({ 
+        username: errorMessage
+      })
+      
+      // 사용자에게 에러 알림
+      alert(errorMessage)
+      
     } finally {
       setIsSubmitting(false)
-      setUploadProgress(0)
     }
   }
 
@@ -221,11 +476,11 @@ export default function RegisterPage() {
                   <Input
                     id="name"
                     placeholder="홍길동"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    className={errors.name ? "border-red-500" : ""}
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    className={errors.username ? "border-red-500" : ""}
                   />
-                  {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                  {errors.username && <p className="text-sm text-red-600">{errors.username}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -245,36 +500,53 @@ export default function RegisterPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="position">포지션 *</Label>
-                  <Select value={formData.position} onValueChange={(value) => handleInputChange("position", value)}>
-                    <SelectTrigger className={errors.position ? "border-red-500" : ""}>
-                      <SelectValue placeholder="포지션 선택" />
+                  <Select value={formData.positionId?.toString() || ""} onValueChange={(value) => handleIdChange("positionId", value)}>
+                    <SelectTrigger className={errors.positionId ? "border-red-500" : ""}>
+                      <SelectValue placeholder={loadingPositions ? "포지션 로딩 중..." : positionsError ? "포지션 로딩 실패" : "포지션 선택"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {positions.map((position) => (
-                        <SelectItem key={position} value={position}>
-                          {position}
-                        </SelectItem>
-                      ))}
+                        {loadingPositions ? (
+                          <div className="p-2 text-center text-slate-500">포지션을 불러오는 중입니다...</div>
+                        ) : positionsError ? (
+                          <div className="p-2 text-center text-red-500">포지션을 불러오는데 실패했습니다</div>
+                        ) : positions.length === 0 ? (
+                          <div className="p-2 text-center text-slate-500">등록된 포지션이 없습니다</div>
+                        ) : (
+                          positions.map((position) => (
+                            <SelectItem key={position.id} value={position.id.toString()}>
+                              {position.title}
+                            </SelectItem>
+                          ))
+                        )}
                     </SelectContent>
                   </Select>
-                  {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
+                  {errors.positionId && <p className="text-sm text-red-600">{errors.positionId}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="experience">경력 *</Label>
-                  <Select value={formData.experience} onValueChange={(value) => handleInputChange("experience", value)}>
-                    <SelectTrigger className={errors.experience ? "border-red-500" : ""}>
-                      <SelectValue placeholder="경력 선택" />
+                  <Select value={formData.experienceId?.toString() || ""} onValueChange={(value) => handleIdChange("experienceId", value)}>
+                    <SelectTrigger className={errors.experienceId ? "border-red-500" : ""}>
+                      <SelectValue placeholder={loadingExperiences ? "경력 로딩 중..." : experiencesError ? "경력 로딩 실패" : "경력 선택"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {experienceLevels.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
+                      {
+                        loadingExperiences ? (
+                          <div className="p-2 text-center text-slate-500">경력 정보를 불러오는 중입니다...</div>
+                        ) : experiencesError ? (
+                          <div className="p-2 text-center text-red-500">경력 정보를 불러오는데 실패했습니다</div>
+                        ) : experiences.length === 0 ? (
+                          <div className="p-2 text-center text-slate-500">등록된 경력 정보가 없습니다</div>
+                        ) : (
+                          experiences.map((experience) => (
+                            <SelectItem key={experience.id} value={experience.id.toString()}>
+                              {experience.title}
+                            </SelectItem>
+                          ))
+                        )}
                     </SelectContent>
                   </Select>
-                  {errors.experience && <p className="text-sm text-red-600">{errors.experience}</p>}
+                  {errors.experienceId && <p className="text-sm text-red-600">{errors.experienceId}</p>}
                 </div>
               </div>
 
@@ -292,15 +564,41 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="skills">기술 스택 *</Label>
-                <Textarea
-                  id="skills"
-                  placeholder="React, TypeScript, Node.js, Python, AWS..."
-                  value={formData.skills}
-                  onChange={(e) => handleInputChange("skills", e.target.value)}
-                  className={errors.skills ? "border-red-500" : ""}
-                  rows={3}
-                />
-                {errors.skills && <p className="text-sm text-red-600">{errors.skills}</p>}
+                                 <div className={`flex flex-wrap gap-2 p-3 border rounded-md min-h-[60px] ${errors.techStackIds ? "border-red-500" : "border-slate-300"}`}>
+                   {loadingTechStacks ? (
+                     <p className="text-slate-500">기술 스택을 불러오는 중입니다...</p>
+                   ) : techStacksError ? (
+                     <p className="text-red-500">기술 스택을 불러오는데 실패했습니다.</p>
+                   ) : techStacks.length === 0 ? (
+                     <p className="text-slate-500">등록된 기술 스택이 없습니다.</p>
+                   ) : (
+                     techStacks.map((tech) => (
+                       <Button
+                         key={tech.id}
+                         type="button"
+                         variant={selectedTechStackIds.includes(tech.id) ? "default" : "outline"}
+                         size="sm"
+                         onClick={() => toggleTechStack(tech.id)}
+                         className={`flex items-center gap-1 ${
+                           selectedTechStackIds.includes(tech.id) 
+                             ? "bg-blue-600 text-white hover:bg-blue-700" 
+                             : "hover:bg-slate-50"
+                         }`}
+                       >
+                         {selectedTechStackIds.includes(tech.id) && (
+                           <CheckCircle className="h-3 w-3" />
+                         )}
+                         <span className="text-sm">{tech.title}</span>
+                       </Button>
+                     ))
+                   )}
+                 </div>
+                 {selectedTechStackIds.length > 0 && (
+                   <p className="text-sm text-slate-600">
+                     선택된 기술: {selectedTechStackIds.map(id => techStacks.find(tech => tech.id === id)?.title).join(', ')}
+                   </p>
+                 )}
+                {errors.techStackIds && <p className="text-sm text-red-600">{errors.techStackIds}</p>}
               </div>
             </CardContent>
           </Card>
@@ -319,9 +617,13 @@ export default function RegisterPage() {
                 className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                   dragActive.resume
                     ? "border-blue-400 bg-blue-50"
-                    : files.resume
-                      ? "border-green-400 bg-green-50"
-                      : "border-slate-300 hover:border-slate-400"
+                    : resumeUploadState.uploading
+                      ? "border-yellow-400 bg-yellow-50"
+                      : resumeUploadState.uploaded
+                        ? "border-green-400 bg-green-50"
+                        : resumeUploadState.error
+                          ? "border-red-400 bg-red-50"
+                          : "border-slate-300 hover:border-slate-400"
                 }`}
                 onDragEnter={(e) => handleDrag(e, "resume")}
                 onDragLeave={(e) => handleDrag(e, "resume")}
@@ -333,13 +635,27 @@ export default function RegisterPage() {
                   accept=".pdf,.doc,.docx"
                   onChange={(e) => handleFileInput(e, "resume")}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={resumeUploadState.uploading}
                 />
 
-                {files.resume ? (
+                {resumeUploadState.uploading ? (
+                  <div className="space-y-2">
+                    <Upload className="h-12 w-12 text-yellow-500 mx-auto animate-pulse" />
+                    <p className="text-yellow-700 font-medium">업로드 중...</p>
+                    <p className="text-sm text-yellow-600">파일을 업로드하고 있습니다. 잠시만 기다려주세요.</p>
+                  </div>
+                ) : resumeUploadState.uploaded ? (
                   <div className="space-y-2">
                     <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-                    <p className="text-green-700 font-medium">{files.resume.name}</p>
+                    <p className="text-green-700 font-medium">{resumeUploadState.fileName}</p>
                     <p className="text-sm text-green-600">이력서가 성공적으로 업로드되었습니다</p>
+                  </div>
+                ) : resumeUploadState.error ? (
+                  <div className="space-y-2">
+                    <Upload className="h-12 w-12 text-red-500 mx-auto" />
+                    <p className="text-red-700 font-medium">업로드 실패</p>
+                    <p className="text-sm text-red-600">{resumeUploadState.error}</p>
+                    <p className="text-xs text-red-500">다시 시도하려면 파일을 선택해주세요</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -349,6 +665,7 @@ export default function RegisterPage() {
                   </div>
                 )}
               </div>
+              {errors.resumeFilePath && <p className="text-sm text-red-600 mt-2">{errors.resumeFilePath}</p>}
             </CardContent>
           </Card>
 
@@ -411,7 +728,7 @@ export default function RegisterPage() {
             </Card>
           </div>
 
-          {/* Portfolio Files */}
+          {/* Portfolio File */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -420,10 +737,18 @@ export default function RegisterPage() {
               </CardTitle>
               <CardDescription>추가 포트폴리오 파일, 프로젝트 또는 문서를 업로드하세요</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div
                 className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  dragActive.portfolio ? "border-blue-400 bg-blue-50" : "border-slate-300 hover:border-slate-400"
+                  dragActive.portfolio 
+                    ? "border-blue-400 bg-blue-50" 
+                    : portfolioUploadState.uploading
+                      ? "border-yellow-400 bg-yellow-50"
+                      : portfolioUploadState.uploaded
+                        ? "border-green-400 bg-green-50"
+                        : portfolioUploadState.error
+                          ? "border-red-400 bg-red-50"
+                          : "border-slate-300 hover:border-slate-400"
                 }`}
                 onDragEnter={(e) => handleDrag(e, "portfolio")}
                 onDragLeave={(e) => handleDrag(e, "portfolio")}
@@ -432,50 +757,51 @@ export default function RegisterPage() {
               >
                 <input
                   type="file"
-                  multiple
+                  accept=".pdf,.doc,.docx"
                   onChange={(e) => handleFileInput(e, "portfolio")}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={portfolioUploadState.uploading}
                 />
 
-                <div className="space-y-2">
-                  <Upload className="h-8 w-8 text-slate-400 mx-auto" />
-                  <p className="text-slate-600">파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
-                  <p className="text-sm text-slate-500">여러 파일 업로드 지원</p>
-                </div>
+                {portfolioUploadState.uploading ? (
+                  <div className="space-y-2">
+                    <Upload className="h-8 w-8 text-yellow-500 mx-auto animate-pulse" />
+                    <p className="text-yellow-700 font-medium">업로드 중...</p>
+                    <p className="text-sm text-yellow-600">파일을 업로드하고 있습니다. 잠시만 기다려주세요.</p>
+                  </div>
+                ) : portfolioUploadState.uploaded ? (
+                  <div className="space-y-2">
+                    <CheckCircle className="h-8 w-8 text-green-600 mx-auto" />
+                    <p className="text-green-700 font-medium">{portfolioUploadState.fileName}</p>
+                    <p className="text-sm text-green-600">포트폴리오가 성공적으로 업로드되었습니다</p>
+                  </div>
+                ) : portfolioUploadState.error ? (
+                  <div className="space-y-2">
+                    <Upload className="h-8 w-8 text-red-500 mx-auto" />
+                    <p className="text-red-700 font-medium">업로드 실패</p>
+                    <p className="text-sm text-red-600">{portfolioUploadState.error}</p>
+                    <p className="text-xs text-red-500">다시 시도하려면 파일을 선택해주세요</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="h-8 w-8 text-slate-400 mx-auto" />
+                    <p className="text-slate-600">포트폴리오를 여기에 드래그하거나 클릭하여 파일을 선택하세요</p>
+                    <p className="text-sm text-slate-500">PDF, DOC, DOCX 최대 10MB</p>
+                  </div>
+                )}
               </div>
-
-              {files.portfolioFiles.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-slate-600">업로드된 파일:</p>
-                  {files.portfolioFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <span className="text-sm text-slate-700">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removePortfolioFile(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        제거
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {errors.portfolioFilePath && <p className="text-sm text-red-600 mt-2">{errors.portfolioFilePath}</p>}
             </CardContent>
           </Card>
 
-          {/* Upload Progress */}
+          {/* Submitting Progress */}
           {isSubmitting && (
             <Card>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>지원자 정보 업로드 중...</span>
-                    <span>{uploadProgress}%</span>
+                  <div className="flex justify-center text-sm">
+                    <span>지원자 정보를 등록하는 중입니다...</span>
                   </div>
-                  <Progress value={uploadProgress} className="w-full" />
                 </div>
               </CardContent>
             </Card>
