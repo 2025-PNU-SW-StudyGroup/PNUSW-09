@@ -3,6 +3,7 @@ package studyGroup.interviewAI.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import studyGroup.interviewAI.entity.Applicant;
+import studyGroup.interviewAI.entity.ApplicationStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,4 +39,7 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
            "LEFT JOIN FETCH at.techStack " +
            "WHERE a.id = :id")
     Optional<Applicant> findByIdWithAllRelations(Long id);
+    
+    // 상태별 지원자 수 카운트
+    long countByStatus(ApplicationStatus status);
 } 
