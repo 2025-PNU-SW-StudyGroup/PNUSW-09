@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 @Entity
 public class Manager {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // Getters and Setters
