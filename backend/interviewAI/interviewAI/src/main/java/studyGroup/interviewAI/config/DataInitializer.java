@@ -5,9 +5,11 @@ import org.springframework.stereotype.Component;
 import studyGroup.interviewAI.entity.Experience;
 import studyGroup.interviewAI.entity.Position;
 import studyGroup.interviewAI.entity.TechStack;
+import studyGroup.interviewAI.entity.Manager;
 import studyGroup.interviewAI.service.ExperienceService;
 import studyGroup.interviewAI.service.PositionService;
 import studyGroup.interviewAI.service.TechStackService;
+import studyGroup.interviewAI.service.ManagerService;
 
 import java.util.List;
 
@@ -17,15 +19,18 @@ public class DataInitializer {
     private final TechStackService techStackService;
     private final ExperienceService experienceService;
     private final PositionService positionService;
+    private final ManagerService managerService;
 
-    public DataInitializer(TechStackService techStackService, ExperienceService experienceService, PositionService positionService) {
+    public DataInitializer(TechStackService techStackService, ExperienceService experienceService, PositionService positionService, ManagerService managerService) {
         this.techStackService = techStackService;
         this.experienceService = experienceService;
         this.positionService = positionService;
+        this.managerService = managerService;
     }
 
     @PostConstruct
     public void initializeData() {
+        initManager();
         initTechStacks();
         initExperiences();
         initPositions();
@@ -119,5 +124,20 @@ public class DataInitializer {
         }
 
         System.out.println("✅ 초기 포지션 데이터 " + initialPositions.length + "개가 생성되었습니다.");
+    }
+
+    private void initManager() {
+        // 매니저 ID 0이 이미 존재하는지 확인
+        if (managerService.findById(0L).isPresent()) {
+            System.out.println("매니저 ID 0이 이미 존재합니다. 초기화를 건너뜁니다.");
+            return;
+        }
+
+        // 매니저 ID 0 생성
+        Manager manager = new Manager();
+        manager.setId(0L);
+        managerService.save(manager);
+
+        System.out.println("✅ 매니저 ID 0이 생성되었습니다.");
     }
 } 
