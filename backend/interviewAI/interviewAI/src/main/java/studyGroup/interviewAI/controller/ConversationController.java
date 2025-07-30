@@ -51,19 +51,6 @@ public class ConversationController {
         conversationService.deleteById(id);
     }
 
-    // 특정 면접의 대화 조회 (UI 배치 정보 포함)
-    @GetMapping("/interview/{interviewId}/with-ui-info")
-    public List<Map<String, Object>> getConversationsWithUIInfo(@PathVariable Long interviewId) {
-        List<Conversation> conversations = conversationService.findByInterviewId(interviewId);
-        return conversations.stream().map(conv -> {
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", conv.getId());
-            response.put("content", conv.getContent());
-            response.put("isManager", conv.getIsManager());
-            response.put("interviewId", conv.getInterview().getId());
-            return response;
-        }).collect(java.util.stream.Collectors.toList());
-    }
 
     // Conversation 응답 데이터 구성 헬퍼 메소드
     private Map<String, Object> buildConversationResponse(Conversation conversation) {
