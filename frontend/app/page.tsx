@@ -168,7 +168,7 @@ export default function OverviewPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-600">인터뷰 완료</p>
                   <p className="text-2xl font-bold text-slate-800">
-                    {candidates.filter((c) => c.status === "completed").length}명
+                    {candidates.filter((c) => c.status === "COMPLETED").length}명
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
