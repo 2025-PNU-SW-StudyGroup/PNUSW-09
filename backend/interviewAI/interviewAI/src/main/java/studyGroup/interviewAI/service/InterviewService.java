@@ -1,10 +1,12 @@
 package studyGroup.interviewAI.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import studyGroup.interviewAI.entity.Interview;
 import studyGroup.interviewAI.entity.Conversation;
 import studyGroup.interviewAI.entity.Manager;
 import studyGroup.interviewAI.entity.Applicant;
+import studyGroup.interviewAI.entity.ApplicationStatus;
 import studyGroup.interviewAI.repository.InterviewRepository;
 import studyGroup.interviewAI.repository.ConversationRepository;
 import studyGroup.interviewAI.repository.ManagerRepository;
@@ -48,11 +50,18 @@ public class InterviewService {
     }
 
     // 면접 완료 처리
+    @Transactional
     public Interview completeInterview(Long interviewId) {
         Optional<Interview> interviewOpt = interviewRepository.findById(interviewId);
         if (interviewOpt.isPresent()) {
             Interview interview = interviewOpt.get();
             interview.setDoneAt(LocalDateTime.now());
+            
+            // 지원자 상태를 COMPLETED로 변경
+            Applicant applicant = interview.getApplicant();
+            applicant.setStatus(ApplicationStatus.COMPLETED);
+            applicantRepository.save(applicant);
+            
             return interviewRepository.save(interview);
         }
         throw new RuntimeException("Interview not found with id: " + interviewId);
@@ -69,12 +78,18 @@ public class InterviewService {
     }
 
     // 매니저와 함께 인터뷰 시작
+    @Transactional
     public Interview startInterviewWithManager(Long applicantId, Long managerId) {
         // 지원자 존재 확인
         Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
         if (applicantOpt.isEmpty()) {
             throw new RuntimeException("Applicant not found with id: " + applicantId);
         }
+
+        // 지원자 상태를 INTERVIEWING으로 변경
+        Applicant applicant = applicantOpt.get();
+        applicant.setStatus(ApplicationStatus.INTERVIEWING);
+        applicantRepository.save(applicant);
 
         // 매니저 존재 확인 또는 생성
         Manager manager = managerRepository.findById(managerId).orElseGet(() -> {
@@ -85,7 +100,7 @@ public class InterviewService {
 
         // 새 인터뷰 생성
         Interview interview = new Interview();
-        interview.setApplicant(applicantOpt.get());
+        interview.setApplicant(applicant);
         interview.setManager(manager);
         // doneAt은 null로 두어 진행 중임을 표시
 

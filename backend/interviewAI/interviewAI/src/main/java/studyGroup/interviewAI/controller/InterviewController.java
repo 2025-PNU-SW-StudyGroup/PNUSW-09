@@ -25,11 +25,11 @@ public class InterviewController {
         return interviews.stream().map(this::buildInterviewResponse).collect(java.util.stream.Collectors.toList());
     }
 
-    @GetMapping("/{id}")
-    public Map<String, Object> getInterview(@PathVariable Long id) {
-        Optional<Interview> interviewOpt = interviewService.findById(id);
+    @GetMapping("/{interviewId}")
+    public Map<String, Object> getInterview(@PathVariable Long interviewId) {
+        Optional<Interview> interviewOpt = interviewService.findById(interviewId);
         if (interviewOpt.isEmpty()) {
-            throw new RuntimeException("Interview not found with id: " + id);
+            throw new RuntimeException("Interview not found with id: " + interviewId);
         }
         return buildInterviewResponse(interviewOpt.get());
     }
@@ -40,30 +40,26 @@ public class InterviewController {
         return buildInterviewResponse(savedInterview);
     }
 
-    @PutMapping("/{id}")
-    public Map<String, Object> updateInterview(@PathVariable Long id, @RequestBody Interview interview) {
-        interview.setId(id);
+    @PutMapping("/{interviewId}")
+    public Map<String, Object> updateInterview(@PathVariable Long interviewId, @RequestBody Interview interview) {
+        interview.setId(interviewId);
         Interview savedInterview = interviewService.save(interview);
         return buildInterviewResponse(savedInterview);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteInterview(@PathVariable Long id) {
-        interviewService.deleteById(id);
+    @DeleteMapping("/{interviewId}")
+    public void deleteInterview(@PathVariable Long interviewId) {
+        interviewService.deleteById(interviewId);
     }
 
     // 면접 완료 처리
-    @PutMapping("/{id}/complete")
-    public Map<String, Object> completeInterview(@PathVariable Long id) {
-        Interview completedInterview = interviewService.completeInterview(id);
+    @PutMapping("/{interviewId}/complete")
+    public Map<String, Object> completeInterview(@PathVariable Long interviewId) {
+        Interview completedInterview = interviewService.completeInterview(interviewId);
         return buildInterviewResponse(completedInterview);
     }
 
-    // 특정 면접의 대화 조회
-    @GetMapping("/{id}/conversations")
-    public List<Conversation> getInterviewConversations(@PathVariable Long id) {
-        return interviewService.findConversationsByInterviewId(id);
-    }
+
 
     // 인터뷰 시작 (지원자 ID로 새 면접 생성)
     @PostMapping("/start")
@@ -98,10 +94,10 @@ public class InterviewController {
         return response;
     }
 
-    // 특정 면접의 대화 조회 (UI 배치 정보 포함)
-    @GetMapping("/{id}/conversations/with-ui-info")
-    public List<Map<String, Object>> getInterviewConversationsWithUIInfo(@PathVariable Long id) {
-        List<Conversation> conversations = interviewService.findConversationsByInterviewId(id);
+    // 특정 면접의 대화 조회
+    @GetMapping("/{interviewId}/conversations")
+    public List<Map<String, Object>> getInterviewConversations(@PathVariable Long interviewId) {
+        List<Conversation> conversations = interviewService.findConversationsByInterviewId(interviewId);
         return conversations.stream().map(conv -> {
             Map<String, Object> response = new HashMap<>();
             response.put("id", conv.getId());

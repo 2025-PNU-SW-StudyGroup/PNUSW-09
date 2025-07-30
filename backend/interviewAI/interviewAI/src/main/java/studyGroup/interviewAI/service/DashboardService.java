@@ -5,6 +5,7 @@ import studyGroup.interviewAI.entity.Applicant;
 import studyGroup.interviewAI.entity.TechStack;
 import studyGroup.interviewAI.entity.Interview;
 import studyGroup.interviewAI.entity.PostReport;
+import studyGroup.interviewAI.entity.ApplicationStatus;
 import studyGroup.interviewAI.repository.ApplicantRepository;
 import studyGroup.interviewAI.repository.InterviewRepository;
 import studyGroup.interviewAI.repository.PostReportRepository;
@@ -38,18 +39,18 @@ public class DashboardService {
         // 전체 지원자 수
         long totalApplicants = applicantRepository.count();
         
-        // 완료된 면접 수
-        long completedInterviews = interviewRepository.countByDoneAtIsNotNull();
-        
-        // 대기 중인 면접 수
-        long pendingInterviews = interviewRepository.countByDoneAtIsNull();
+        // 지원자 상태별 카운트
+        long waitingApplicants = applicantRepository.countByStatus(ApplicationStatus.WAITING);
+        long interviewingApplicants = applicantRepository.countByStatus(ApplicationStatus.INTERVIEWING);
+        long completedApplicants = applicantRepository.countByStatus(ApplicationStatus.COMPLETED);
         
         // 평균 점수
         Double averageScore = postReportRepository.findAverageScore();
         
         stats.put("totalApplicants", totalApplicants);
-        stats.put("completedInterviews", completedInterviews);
-        stats.put("pendingInterviews", pendingInterviews);
+        stats.put("pendingApplicants", waitingApplicants);
+        stats.put("interviewingApplicants", interviewingApplicants);
+        stats.put("completedApplicants", completedApplicants);
         stats.put("averageScore", averageScore != null ? averageScore : 0.0);
         
         return stats;
