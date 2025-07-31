@@ -161,19 +161,6 @@ export default function LiveInterviewPage() {
     setSessionId(Date.now().toString())
   }, [])
 
-  // 지원자 상태에 따른 리다이렉트 (현재 세션에서 시작한 면접은 제외)
-  useEffect(() => {
-    if (candidate && !isInterviewStarted) {
-      if (candidate.status === "COMPLETED") {
-        // 완료된 면접은 리뷰 페이지로 리다이렉트
-        router.push(`/review/${candidate.id}`)
-      } else if (candidate.status === "INTERVIEWING") {
-        // 이미 진행 중인 면접은 홈으로 리다이렉트 (현재 세션에서 시작한 경우는 제외)
-        router.push("/")
-      }
-    }
-  }, [candidate, router, isInterviewStarted])
-
   useEffect(() => {
     if (isInterviewStarted) {
       intervalRef.current = setInterval(() => {

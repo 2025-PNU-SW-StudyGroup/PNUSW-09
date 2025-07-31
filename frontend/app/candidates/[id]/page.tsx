@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getCandidateById } from "@/lib/mock-data"
+import { API_CONFIG, getApiUrl } from "@/lib/config"
 import {
   AlertTriangle,
   Calendar,
@@ -23,18 +23,109 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import useSWR from "swr"
+
+// API 응답용 Candidate 타입 정의
+interface ApiCandidate {
+  id: string | number
+  username: string
+  email: string
+  position: { id: number, title: string }
+  status: "WAITING" | "INTERVIEWING" | "COMPLETED"
+  applyAt: string
+  experience: { id: number, title: string }
+  location: string
+  techStackNames: string[]
+  score?: number
+  avatar?: string
+}
+
+// fetcher 함수
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function CandidateDetailPage() {
   const params = useParams()
   const candidateId = params.id as string
-  const candidate = getCandidateById(candidateId)
+
+  // 실제 API 호출
+  const { data: candidate, error, isLoading } = useSWR<ApiCandidate>(
+    candidateId ? getApiUrl(`${API_CONFIG.ENDPOINTS.APPLICANTS}/${candidateId}`) : null,
+    fetcher
+  )
 
   // Remove all upload-related state and functions
-  const [githubUrl, setGithubUrl] = useState(candidate?.githubUrl || "")
-  const [portfolioUrl, setPortfolioUrl] = useState(candidate?.portfolioUrl || "")
-  const [resumeUploaded, setResumeUploaded] = useState(candidate?.resumeUploaded || false)
+  const [githubUrl, setGithubUrl] = useState("")
+  const [portfolioUrl, setPortfolioUrl] = useState("")
+  const [resumeUploaded, setResumeUploaded] = useState(false)
+
+  // candidate 데이터가 로드되면 상태 업데이트
+  useEffect(() => {
+    if (candidate) {
+      setGithubUrl(candidate.email || "") // API에서는 githubUrl이 없을 수 있음
+      setPortfolioUrl(candidate.email || "") // API에서는 portfolioUrl이 없을 수 있음
+      setResumeUploaded(false) // API에서는 resumeUploaded가 없을 수 있음
+    }
+  }, [candidate])
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            {/* Header skeleton */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-slate-200 rounded-full"></div>
+                <div>
+                  <div className="h-8 w-48 bg-slate-200 rounded mb-2"></div>
+                  <div className="h-6 w-32 bg-slate-200 rounded mb-2"></div>
+                  <div className="h-4 w-64 bg-slate-200 rounded"></div>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="h-8 w-16 bg-slate-200 rounded"></div>
+                <div className="h-10 w-24 bg-slate-200 rounded"></div>
+              </div>
+            </div>
+            
+            {/* Skills skeleton */}
+            <div>
+              <div className="h-4 w-20 bg-slate-200 rounded mb-2"></div>
+              <div className="flex gap-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-6 w-16 bg-slate-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tabs skeleton */}
+            <div className="space-y-6">
+              <div className="h-10 w-full bg-slate-200 rounded"></div>
+              <div className="grid lg:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="h-64 bg-slate-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">데이터를 불러올 수 없습니다</h1>
+          <p className="text-slate-600 mb-4">서버 연결에 문제가 발생했습니다.</p>
+          <Button onClick={() => window.location.reload()}>다시 시도</Button>
+        </div>
+      </div>
+    )
+  }
 
   if (!candidate) {
     return (
@@ -52,7 +143,7 @@ export default function CandidateDetailPage() {
 
   // Mock performance data for completed interviews
   const performanceData =
-    candidate.status === "completed"
+    candidate.status === "COMPLETED"
       ? [
           { name: "기술 지식", value: 85, color: "#3b82f6" },
           { name: "문제 해결", value: 78, color: "#10b981" },
@@ -62,7 +153,7 @@ export default function CandidateDetailPage() {
       : []
 
   const topicData =
-    candidate.status === "completed"
+    candidate.status === "COMPLETED"
       ? [
           { topic: "React", timeSpent: 12, questions: 4, success: 85 },
           { topic: "TypeScript", timeSpent: 8, questions: 3, success: 90 },
@@ -75,19 +166,42 @@ export default function CandidateDetailPage() {
     // Simulate PDF download
     const link = document.createElement("a")
     link.href = "#"
-    link.download = `${candidate.name.replace(" ", "_")}_interview_report.pdf`
+    link.download = `${candidate.username.replace(" ", "_")}_interview_report.pdf`
     link.click()
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "completed":
+      case "COMPLETED":
         return "완료"
-      case "pending":
+      case "WAITING":
         return "대기중"
+      case "INTERVIEWING":
+        return "진행중"
       default:
         return status
     }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "bg-green-100 text-green-800 border-green-200"
+      case "WAITING":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "INTERVIEWING":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200"
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
   }
 
   return (
@@ -98,21 +212,21 @@ export default function CandidateDetailPage() {
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                <AvatarImage src={candidate.avatar || "/placeholder.svg"} alt={candidate.name} />
+                <AvatarImage src="/placeholder.svg" alt={candidate.username} />
                 <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-lg">
-                  {candidate.name
+                  {candidate.username
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n: string) => n[0])
                     .join("")}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-3xl font-bold text-slate-800">{candidate.name}</h1>
-                <p className="text-lg text-slate-600">{candidate.position}</p>
+                <h1 className="text-3xl font-bold text-slate-800">{candidate.username}</h1>
+                <p className="text-lg text-slate-600">{candidate.position.title}</p>
                 <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {candidate.experience}
+                    {candidate.experience.title}
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
@@ -120,25 +234,19 @@ export default function CandidateDetailPage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {new Date(candidate.appliedDate).toLocaleDateString()} 지원
+                    {formatDate(candidate.applyAt)} 지원
                   </span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge
-                className={`${
-                  candidate.status === "completed"
-                    ? "bg-green-100 text-green-800 border-green-200"
-                    : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                } border`}
-              >
+              <Badge className={`${getStatusColor(candidate.status)} border`}>
                 {getStatusText(candidate.status)}
               </Badge>
               <Link href={`/interview/${candidate.id}`}>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <Play className="h-4 w-4 mr-2" />
-                  {candidate.status === "completed" ? "면접 검토" : "면접 시작"}
+                  {candidate.status === "COMPLETED" ? "면접 검토" : "면접 시작"}
                 </Button>
               </Link>
             </div>
@@ -148,8 +256,8 @@ export default function CandidateDetailPage() {
           <div>
             <p className="text-sm font-medium text-slate-600 mb-2">기술 스택:</p>
             <div className="flex flex-wrap gap-2">
-              {candidate.skills.map((skill) => (
-                <Badge key={skill} variant="outline" className="bg-slate-50">
+              {candidate.techStackNames.map((skill: string, index: number) => (
+                <Badge key={index} variant="outline" className="bg-slate-50">
                   {skill}
                 </Badge>
               ))}
@@ -161,7 +269,7 @@ export default function CandidateDetailPage() {
         <Tabs defaultValue="skills-summary" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="skills-summary">기술 요약</TabsTrigger>
-            <TabsTrigger value="interview-report" disabled={candidate.status !== "completed"}>
+            <TabsTrigger value="interview-report" disabled={candidate.status !== "COMPLETED"}>
               면접 리포트
             </TabsTrigger>
           </TabsList>
@@ -182,11 +290,11 @@ export default function CandidateDetailPage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{candidate.experience}</div>
+                        <div className="text-2xl font-bold text-blue-600">{candidate.experience.title}</div>
                         <div className="text-sm text-blue-700">경력</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{candidate.skills.length}</div>
+                        <div className="text-2xl font-bold text-green-600">{candidate.techStackNames.length}</div>
                         <div className="text-sm text-green-700">주요 기술</div>
                       </div>
                     </div>
@@ -194,8 +302,8 @@ export default function CandidateDetailPage() {
                     <div>
                       <p className="text-sm font-medium text-slate-600 mb-2">기술 스택:</p>
                       <div className="flex flex-wrap gap-2">
-                        {candidate.skills.map((skill) => (
-                          <Badge key={skill} variant="outline" className="bg-slate-50">
+                        {candidate.techStackNames.map((skill: string, index: number) => (
+                          <Badge key={index} variant="outline" className="bg-slate-50">
                             {skill}
                           </Badge>
                         ))}
@@ -215,42 +323,31 @@ export default function CandidateDetailPage() {
                   <CardDescription>코드 저장소 및 기여도 분석</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {candidate.githubUrl ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-purple-50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">15</div>
-                          <div className="text-sm text-purple-700">저장소</div>
-                        </div>
-                        <div className="text-center p-3 bg-orange-50 rounded-lg">
-                          <div className="text-2xl font-bold text-orange-600">4.2k</div>
-                          <div className="text-sm text-orange-700">기여도</div>
-                        </div>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-purple-50 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">15</div>
+                        <div className="text-sm text-purple-700">저장소</div>
                       </div>
-
-                      <div>
-                        <p className="text-sm font-medium text-slate-600 mb-2">주요 언어:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {["JavaScript", "TypeScript", "Python", "React"].map((lang) => (
-                            <Badge key={lang} variant="outline" className="bg-blue-50">
-                              {lang}
-                            </Badge>
-                          ))}
-                        </div>
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600">4.2k</div>
+                        <div className="text-sm text-orange-700">기여도</div>
                       </div>
-
-                      <a
-                        href={candidate.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        GitHub 프로필 보기 <ExternalLink className="h-3 w-3" />
-                      </a>
                     </div>
-                  ) : (
+
+                    <div>
+                      <p className="text-sm font-medium text-slate-600 mb-2">주요 언어:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {["JavaScript", "TypeScript", "Python", "React"].map((lang) => (
+                          <Badge key={lang} variant="outline" className="bg-blue-50">
+                            {lang}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
                     <p className="text-slate-500 text-center py-4">GitHub 프로필이 제공되지 않았습니다</p>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -264,30 +361,18 @@ export default function CandidateDetailPage() {
                   <CardDescription>포트폴리오 및 프로젝트 작업 분석</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {candidate.portfolioUrl ? (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium text-slate-600 mb-2">확인된 주요 강점:</p>
-                        <ul className="text-sm text-slate-700 space-y-1">
-                          <li>• 모던 프레임워크를 활용한 강력한 프론트엔드 개발 경험</li>
-                          <li>• 뛰어난 UI/UX 디자인 감각</li>
-                          <li>• 프로젝트 전반에 걸쳐 입증된 풀스택 역량</li>
-                          <li>• 활발한 오픈소스 기여 활동</li>
-                        </ul>
-                      </div>
-
-                      <a
-                        href={candidate.portfolioUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        포트폴리오 보기 <ExternalLink className="h-3 w-3" />
-                      </a>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600 mb-2">확인된 주요 강점:</p>
+                      <ul className="text-sm text-slate-700 space-y-1">
+                        <li>• 모던 프레임워크를 활용한 강력한 프론트엔드 개발 경험</li>
+                        <li>• 뛰어난 UI/UX 디자인 감각</li>
+                        <li>• 프로젝트 전반에 걸쳐 입증된 풀스택 역량</li>
+                        <li>• 활발한 오픈소스 기여 활동</li>
+                      </ul>
                     </div>
-                  ) : (
                     <p className="text-slate-500 text-center py-4">포트폴리오가 제공되지 않았습니다</p>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -295,14 +380,14 @@ export default function CandidateDetailPage() {
 
           {/* Interview Report Tab - keep existing content */}
           <TabsContent value="interview-report" className="space-y-6">
-            {candidate.status === "completed" && (
+            {candidate.status === "COMPLETED" && (
               <>
                 {/* Overall Score */}
                 <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                   <CardHeader className="text-center">
                     <CardTitle className="text-2xl text-slate-800">면접 성과</CardTitle>
                     <CardDescription>
-                      {candidate.interviewDate && new Date(candidate.interviewDate).toLocaleDateString()} 완료
+                      {candidate.applyAt && new Date(candidate.applyAt).toLocaleDateString()} 완료
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
@@ -400,25 +485,25 @@ export default function CandidateDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {candidate.strengths?.map((strength, index) => (
+                        {/* {candidate.strengths?.map((strength, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-green-800">{strength}</span>
                           </li>
-                        )) || [
+                        )) || [ */}
                           <li key="default1" className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-green-800">문제 해결 능력이 뛰어남</span>
-                          </li>,
+                          </li>
                           <li key="default2" className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-green-800">기술적 지식이 풍부함</span>
-                          </li>,
+                          </li>
                           <li key="default3" className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-green-800">의사소통 능력이 우수함</span>
                           </li>
-                        ]}
+                        {/* ]} */}
                       </ul>
                     </CardContent>
                   </Card>
@@ -433,21 +518,21 @@ export default function CandidateDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {candidate.improvements?.map((improvement, index) => (
+                        {/* {candidate.improvements?.map((improvement, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-amber-800">{improvement}</span>
                           </li>
-                        )) || [
+                        )) || [ */}
                           <li key="default1" className="flex items-start gap-2">
                             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-amber-800">알고리즘 최적화 기법 보완 필요</span>
-                          </li>,
+                          </li>
                           <li key="default2" className="flex items-start gap-2">
                             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-amber-800">시스템 설계 경험 확장 필요</span>
                           </li>
-                        ]}
+                        {/* ]} */}
                       </ul>
                     </CardContent>
                   </Card>
