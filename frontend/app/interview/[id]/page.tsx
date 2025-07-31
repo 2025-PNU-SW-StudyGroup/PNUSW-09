@@ -7,12 +7,27 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { API_CONFIG, getApiUrl } from "@/lib/config"
-import { getCandidateById } from "@/lib/mock-data"
 import { ArrowRight, Bot, Clock, Mic, MicOff, Play, Plus, Square, User, Volume2 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import useSWR from "swr"
 import useSWRMutation from "swr/mutation"
+
+// API 응답용 Candidate 타입 정의
+interface ApiCandidate {
+  id: string | number
+  username: string
+  email: string
+  position: { id: number, title: string }
+  status: "WAITING" | "INTERVIEWING" | "COMPLETED"
+  applyAt: string
+  experience: { id: number, title: string }
+  location: string
+  techStackNames: string[]
+  score?: number
+  avatar?: string
+}
 
 interface Message {
   id: string
@@ -29,6 +44,9 @@ interface Question {
   question: string
   followUps: string[]
 }
+
+// fetcher 함수
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 // API fetcher 함수
 const updateStatusFetcher = async (url: string, { arg }: { arg: { status: string } }) => {
@@ -49,8 +67,14 @@ const updateStatusFetcher = async (url: string, { arg }: { arg: { status: string
 
 export default function LiveInterviewPage() {
   const params = useParams()
+  const router = useRouter()
   const candidateId = params.id as string
-  const candidate = getCandidateById(candidateId)
+
+  // 실제 API 호출
+  const { data: candidate, error, isLoading } = useSWR<ApiCandidate>(
+    candidateId ? getApiUrl(`${API_CONFIG.ENDPOINTS.APPLICANTS}/${candidateId}`) : null,
+    fetcher
+  )
 
   // SWR Mutation 훅
   const { trigger: updateStatus, isMutating: isUpdatingStatus } = useSWRMutation(
@@ -136,6 +160,19 @@ export default function LiveInterviewPage() {
     // Generate session ID on component mount
     setSessionId(Date.now().toString())
   }, [])
+
+  // 지원자 상태에 따른 리다이렉트 (현재 세션에서 시작한 면접은 제외)
+  useEffect(() => {
+    if (candidate && !isInterviewStarted) {
+      if (candidate.status === "COMPLETED") {
+        // 완료된 면접은 리뷰 페이지로 리다이렉트
+        router.push(`/review/${candidate.id}`)
+      } else if (candidate.status === "INTERVIEWING") {
+        // 이미 진행 중인 면접은 홈으로 리다이렉트 (현재 세션에서 시작한 경우는 제외)
+        router.push("/")
+      }
+    }
+  }, [candidate, router, isInterviewStarted])
 
   useEffect(() => {
     if (isInterviewStarted) {
@@ -339,9 +376,23 @@ export default function LiveInterviewPage() {
     }
   }
 
-  const stopInterview = () => {
-    setIsInterviewStarted(false)
-    stopRecording()
+  const stopInterview = async () => {
+    try {
+      // 면접 종료 시 상태를 COMPLETED로 변경
+      await updateStatus({ status: 'COMPLETED' })
+      
+      console.log('상태가 COMPLETED로 변경되었습니다')
+      
+      setIsInterviewStarted(false)
+      stopRecording()
+      
+      // 상태 변경 후 지원자 상세 페이지로 이동
+      router.push(`/candidates/${candidate?.id}`)
+      
+    } catch (error) {
+      console.error('면접 종료 중 오류 발생:', error)
+      alert('면접을 종료할 수 없습니다. 다시 시도해주세요.')
+    }
   }
 
   const toggleRecording = () => {
@@ -381,6 +432,29 @@ export default function LiveInterviewPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">지원자 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">데이터를 불러올 수 없습니다</h1>
+          <p className="text-slate-600 mb-4">서버 연결에 문제가 발생했습니다.</p>
+          <Button onClick={() => window.location.reload()}>다시 시도</Button>
+        </div>
+      </div>
+    )
+  }
+
   if (!candidate) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -414,7 +488,7 @@ export default function LiveInterviewPage() {
                   </Avatar>
                   <div>
                     <h2 className="font-semibold text-slate-800">{candidate.username}</h2>
-                    <p className="text-sm text-slate-600">{candidate.position}</p>
+                    <p className="text-sm text-slate-600">{candidate.position.title}</p>
                   </div>
                 </div>
 
@@ -425,7 +499,7 @@ export default function LiveInterviewPage() {
                     <div
                       className={`w-3 h-3 rounded-full ${isInterviewStarted ? "bg-green-500 animate-pulse" : "bg-slate-300"}`}
                     ></div>
-                    <span className="text-sm font-medium">{isInterviewStarted ? "실시간 면접" : "시작 전"}</span>
+                    <span className="text-sm font-medium">{isInterviewStarted ? "면접중" : "시작 전"}</span>
                   </div>
 
                   {isInterviewStarted && (
@@ -452,12 +526,14 @@ export default function LiveInterviewPage() {
                     {isUpdatingStatus ? "시작 중..." : "면접 시작"}
                   </Button>
                 ) : (
-                  <Link href={`/candidates/${candidate.id}`}>
-                    <Button onClick={stopInterview} variant="destructive">
-                      <Square className="h-4 w-4 mr-2" />
-                      면접 종료
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={stopInterview} 
+                    variant="destructive"
+                    disabled={isUpdatingStatus}
+                  >
+                    <Square className="h-4 w-4 mr-2" />
+                    {isUpdatingStatus ? "종료 중..." : "면접 종료"}
+                  </Button>
                 )}
               </div>
             </div>
