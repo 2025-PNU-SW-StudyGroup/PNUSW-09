@@ -168,7 +168,7 @@ export default function OverviewPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-600">인터뷰 완료</p>
                   <p className="text-2xl font-bold text-slate-800">
-                    {candidates.filter((c) => c.status === "completed").length}명
+                    {candidates.filter((c) => c.status === "COMPLETED").length}명
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -410,19 +410,32 @@ export default function OverviewPage() {
                         상세보기
                       </Button>
                     </Link>
-                    <Link href={`/interview/${candidate.id}`} className="flex-1">
-                      <Button 
-                        size="sm" 
-                        className={`w-full ${
-                          candidate.status === "COMPLETED" 
-                            ? "bg-purple-600 hover:bg-purple-700" 
-                            : "bg-blue-600 hover:bg-blue-700"
-                        }`}
+                    
+                    {candidate.status === "COMPLETED" ? (
+                      <Link href={`/review/${candidate.id}`} className="flex-1">
+                        <Button 
+                          size="sm" 
+                          className="w-full bg-purple-600 hover:bg-purple-700"
+                        >
+                          <RotateCcw className="h-3 w-3 mr-1" />
+                          인터뷰 검토
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link 
+                        href={candidate.status === "INTERVIEWING" ? "#" : `/interview/${candidate.id}`} 
+                        className="flex-1"
                       >
-                        {candidate.status === "COMPLETED" ? <RotateCcw className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
-                        {candidate.status === "COMPLETED" ? "인터뷰 검토" : "인터뷰 시작"}
-                      </Button>
-                    </Link>
+                        <Button 
+                          size="sm" 
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          disabled={candidate.status === "INTERVIEWING"}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          {candidate.status === "INTERVIEWING" ? "면접 진행중" : "인터뷰 시작"}
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>
