@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { API_CONFIG, getApiUrl } from "@/lib/config"
-import { ArrowRight, Bot, Clock, Mic, MicOff, Play, Plus, Square, User, Volume2 } from "lucide-react"
+import { Clock, Mic, MicOff, Play, Square, User } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -42,7 +42,6 @@ interface Question {
   category: string
   difficulty: "쉬움" | "보통" | "어려움"
   question: string
-  followUps: string[]
 }
 
 // fetcher 함수
@@ -90,9 +89,10 @@ export default function LiveInterviewPage() {
   const [showQuestions, setShowQuestions] = useState(true)
   const [interviewDuration, setInterviewDuration] = useState(0)
   const [currentSpeaker, setCurrentSpeaker] = useState<"candidate" | "interviewer" | null>(null)
-  const [audioLevel, setAudioLevel] = useState(0)
   const [currentTranscript, setCurrentTranscript] = useState("")
   const [sessionId, setSessionId] = useState<string>("")
+  const [nextSpeaker, setNextSpeaker] = useState<"candidate" | "interviewer">("interviewer")
+  const [isInitialConversation, setIsInitialConversation] = useState(true)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -105,44 +105,36 @@ export default function LiveInterviewPage() {
       category: "React",
       difficulty: "보통",
       question: "useEffect와 useLayoutEffect 훅의 차이점을 설명해주세요.",
-      followUps: [
-        "언제 어떤 것을 선택해야 할까요?",
-        "실용적인 예시를 제공해 주실 수 있나요?",
-        "렌더링 사이클에 어떤 영향을 미치나요?",
-      ],
     },
     {
       id: "2",
       category: "시스템 설계",
       difficulty: "어려움",
       question: "수백만 명의 사용자를 처리할 수 있는 실시간 채팅 애플리케이션을 설계해보세요.",
-      followUps: [
-        "메시지 저장을 어떻게 처리하시겠습니까?",
-        "WebSocket 연결의 확장성은 어떻게 처리하시겠습니까?",
-        "메시지 전송 보장을 어떻게 구현하시겠습니까?",
-      ],
     },
     {
       id: "3",
       category: "알고리즘",
       difficulty: "쉬움",
       question: "내장 메서드를 사용하지 않고 문자열을 뒤집는 함수를 구현해보세요.",
-      followUps: [
-        "시간 복잡도는 어떻게 되나요?",
-        "공간 효율성을 위해 최적화할 수 있나요?",
-        "유니코드 문자는 어떻게 처리하시겠습니까?",
-      ],
     },
     {
       id: "4",
       category: "TypeScript",
       difficulty: "보통",
       question: "제네릭 제약조건(generic constraints)을 설명하고 언제 사용하는지 예시를 들어주세요.",
-      followUps: [
-        "타입 안전성을 어떻게 향상시키나요?",
-        "실제 사용 사례를 보여주실 수 있나요?",
-        "조건부 타입은 어떤가요?",
-      ],
+    },
+    {
+      id: "5",
+      category: "JavaScript",
+      difficulty: "어려움",
+      question: "클로저(Closure)와 스코프 체인에 대해 설명하고, 실제 개발에서 어떻게 활용할 수 있는지 예시를 들어주세요.",
+    },
+    {
+      id: "6",
+      category: "데이터베이스",
+      difficulty: "보통",
+      question: "관계형 데이터베이스에서 인덱스의 역할과 종류, 그리고 언제 사용해야 하는지 설명해주세요.",
     },
   ]
 
@@ -191,21 +183,6 @@ export default function LiveInterviewPage() {
       }
     }
   }, [isInterviewStarted])
-
-  // Simulate audio level when recording
-  useEffect(() => {
-    if (isRecording && isInterviewStarted) {
-      const audioInterval = setInterval(() => {
-        setAudioLevel(Math.random() * 100)
-      }, 100)
-
-      return () => {
-        clearInterval(audioInterval)
-      }
-    } else {
-      setAudioLevel(0)
-    }
-  }, [isRecording, isInterviewStarted])
 
   const startRecording = async () => {
     try {
@@ -259,10 +236,15 @@ export default function LiveInterviewPage() {
 
       mediaRecorder.start(1000) // Generate data chunks every 1 second
       setIsRecording(true)
-      setCurrentSpeaker("candidate")
+      setCurrentSpeaker(nextSpeaker)
 
       // Start result polling
       startPolling()
+
+      // 초기 대화 시뮬레이션 시작
+      if (isInitialConversation) {
+        startInitialConversation()
+      }
 
     } catch (error) {
       console.error('Error starting recording:', error)
@@ -319,34 +301,58 @@ export default function LiveInterviewPage() {
     }, 500) // Poll every 0.5 seconds
   }
 
+  const startInitialConversation = () => {
+    const conversations = [
+      { speaker: "interviewer", content: "먼저 간단한 자기소개를 부탁드립니다.", delay: 2000 },
+      { speaker: "candidate", content: "안녕하세요. 저는 3년간 프론트엔드 개발을 해온 개발자입니다.", delay: 6000 },
+      { speaker: "interviewer", content: "네, 좋습니다. 주로 어떤 기술 스택을 사용해서 개발하셨나요?", delay: 10000 },
+      { speaker: "candidate", content: "주로 React와 TypeScript를 사용해서 개발했고, 상태관리는 Redux와 Zustand를 경험했습니다.", delay: 14500 },
+      { speaker: "interviewer", content: "그렇군요. 그럼 가장 기억에 남는 프로젝트가 있다면 소개해 주실 수 있나요?", delay: 20000 },
+      { speaker: "candidate", content: "E-commerce 플랫폼을 개발했는데, 특히 성능 최적화에 집중했습니다. 코드 스플리팅과 이미지 최적화로 로딩 시간을 50% 단축시켰습니다.", delay: 26000 },
+      { speaker: "interviewer", content: "인상적이네요. 그 과정에서 어려웠던 점은 무엇이었나요?", delay: 30000 },
+      { speaker: "candidate", content: "초기에는 번들 사이즈가 너무 커서 로딩이 오래 걸렸는데, 분석 도구를 활용해서 불필요한 라이브러리를 제거하고 lazy loading을 적용했습니다.", delay: 35000 },
+      { speaker: "interviewer", content: "문제 해결 능력이 뛰어나시네요. 그럼 이제 본격적인 기술 면접을 시작해보겠습니다.", delay: 40000 },
+      { speaker: "candidate", content: "네, 준비되었습니다.", delay: 44000 }
+    ]
+
+    conversations.forEach((conv, index) => {
+      setTimeout(() => {
+        const message: Message = {
+          id: (Date.now() + index).toString(),
+          sender: conv.speaker as "interviewer" | "candidate",
+          content: conv.content,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        }
+        setMessages((prev) => [...prev, message])
+        setCurrentSpeaker(conv.speaker as "interviewer" | "candidate")
+        
+        // 다음 화자 설정
+        const nextSpeakerValue = conv.speaker === "interviewer" ? "candidate" : "interviewer"
+        setNextSpeaker(nextSpeakerValue)
+        
+        // 마지막 대화가 끝나면 초기 대화 종료
+        if (index === conversations.length - 1) {
+          setTimeout(() => {
+            setIsInitialConversation(false)
+          }, 2000)
+        }
+      }, conv.delay)
+    })
+  }
+
   const addTranscriptAsMessage = (transcript: string) => {
     if (transcript.trim()) {
       const message: Message = {
         id: Date.now().toString(),
-        sender: "candidate",
+        sender: nextSpeaker,
         content: transcript,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
       setMessages((prev) => [...prev, message])
-
-      // Simulate interviewer response
-      setTimeout(() => {
-        const responses = [
-          "좋은 답변이네요. 더 자세히 설명해 주실 수 있나요?",
-          "흥미로운 접근법이네요. 예외 상황은 어떻게 처리하시겠습니까?",
-          "잘 설명해주셨습니다. 구현에 대해 더 자세히 알아볼까요?",
-          "이해했습니다. 성능 고려사항은 어떤가요?",
-        ]
-
-        const response: Message = {
-          id: (Date.now() + 1).toString(),
-          sender: "interviewer",
-          content: responses[Math.floor(Math.random() * responses.length)],
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        }
-
-        setMessages((prev) => [...prev, response])
-      }, 1500)
+      setCurrentSpeaker(nextSpeaker)
+      
+      // 다음 화자 설정 (번갈아가며)
+      setNextSpeaker(nextSpeaker === "candidate" ? "interviewer" : "candidate")
     }
   }
 
@@ -359,17 +365,10 @@ export default function LiveInterviewPage() {
       
       // 기존 로직 실행
       setIsInterviewStarted(true)
-
-      // Add welcome message
-      const welcomeMessage: Message = {
-        id: "welcome",
-        sender: "interviewer",
-        content: `안녕하세요! 기술 면접에 오신 것을 환영합니다. 지원해주신 포지션의 경력을 검토해보았습니다. 먼저 본인의 경험에 대해 간단히 소개해 주세요.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }
-
-      setMessages([welcomeMessage])
       
+      // 화자 상태 초기화
+      setNextSpeaker("interviewer")
+      setIsInitialConversation(true)
     } catch (error) {
       console.error('면접 시작 중 오류 발생:', error)
       alert('면접을 시작할 수 없습니다. 다시 시도해주세요.')
@@ -542,7 +541,13 @@ export default function LiveInterviewPage() {
           {/* Recording Status */}
           {isInterviewStarted && (
             <div className="bg-blue-50 border-b border-blue-200 p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-end gap-4">
+                <Alert className="border-blue-200 bg-blue-50 p-2 w-auto">
+                  <AlertDescription className="text-blue-700 text-sm">
+                    🎤 실시간 음성 인식이 활성화되었습니다. 모든 대화가 자동으로 텍스트로 변환됩니다.
+                  </AlertDescription>
+                </Alert>
+                
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Button
@@ -554,34 +559,8 @@ export default function LiveInterviewPage() {
                       {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                       {isRecording ? "녹음 중지" : "녹음 시작"}
                     </Button>
-
-                    {isRecording && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Volume2 className="h-4 w-4 text-blue-600" />
-                          <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-blue-500 transition-all duration-100"
-                              style={{ width: `${audioLevel}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {currentSpeaker && (
-                          <Badge variant="outline" className="text-xs">
-                            {currentSpeaker === "candidate" ? "지원자 발화 중" : "면접관 발화 중"}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
-
-                <Alert className="border-blue-200 bg-blue-50 p-2 w-auto">
-                  <AlertDescription className="text-blue-700 text-sm">
-                    🎤 실시간 음성 인식이 활성화되었습니다. 모든 대화가 자동으로 텍스트로 변환됩니다.
-                  </AlertDescription>
-                </Alert>
               </div>
             </div>
           )}
@@ -634,7 +613,7 @@ export default function LiveInterviewPage() {
                     {message.sender === "interviewer" && (
                       <Avatar className="w-8 h-8">
                         <AvatarFallback className="bg-blue-100 text-blue-600">
-                          <Bot className="h-4 w-4" />
+                          <User className="h-4 w-4" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -643,16 +622,29 @@ export default function LiveInterviewPage() {
                 
                 {/* Display current transcript */}
                 {currentTranscript && (
-                  <div className="flex gap-3 justify-start">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-slate-100 text-slate-600">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="max-w-md rounded-lg p-3 bg-slate-200 border border-slate-300 opacity-70">
+                  <div className={`flex gap-3 ${nextSpeaker === "candidate" ? "justify-start" : "justify-end"}`}>
+                    {nextSpeaker === "candidate" && (
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-slate-100 text-slate-600">
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className={`max-w-md rounded-lg p-3 opacity-70 ${
+                      nextSpeaker === "candidate" 
+                        ? "bg-slate-200 border border-slate-300" 
+                        : "bg-blue-200 border border-blue-300"
+                    }`}>
                       <p className="text-sm">{currentTranscript}</p>
                       <p className="text-xs mt-1 text-slate-500">변환 중...</p>
                     </div>
+                    {nextSpeaker === "interviewer" && (
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
                 )}
                 
@@ -683,29 +675,13 @@ export default function LiveInterviewPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-slate-600 mb-1 block">주제</label>
-                  <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">모든 주제</SelectItem>
-                      <SelectItem value="react">React</SelectItem>
-                      <SelectItem value="algorithms">알고리즘</SelectItem>
-                      <SelectItem value="system">시스템 설계</SelectItem>
-                      <SelectItem value="typescript">TypeScript</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {filteredQuestions.map((question) => (
                 <Card key={question.id} className="border border-slate-200">
-                  <CardHeader className="pb-2">
+                  <CardHeader>
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className="text-xs">
                         {question.category}
@@ -717,37 +693,6 @@ export default function LiveInterviewPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm text-slate-700">{question.question}</p>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full bg-transparent"
-                      onClick={() => addQuestionToChat(question.question)}
-                      disabled={!isInterviewStarted}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      면접에 추가
-                    </Button>
-
-                    {question.followUps.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-slate-600">후속 질문 제안:</p>
-                        {question.followUps.map((followUp, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="flex-1 justify-start text-xs h-auto p-2 text-slate-600 hover:text-slate-800"
-                              onClick={() => addQuestionToChat(followUp)}
-                              disabled={!isInterviewStarted}
-                            >
-                              <ArrowRight className="h-3 w-3 mr-1 flex-shrink-0" />
-                              <span className="text-left">{followUp}</span>
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               ))}
