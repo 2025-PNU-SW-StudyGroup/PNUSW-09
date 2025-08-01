@@ -404,24 +404,20 @@ export default function CandidateDetailPage() {
                           className="text-blue-600"
                           stroke="currentColor"
                           strokeWidth="3"
-                          strokeDasharray={`${candidate.score}, 100`}
+                          strokeDasharray={`87.5, 100`}
                           strokeLinecap="round"
                           fill="none"
                           d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-3xl font-bold text-slate-800">{candidate.score}%</span>
+                        <span className="text-3xl font-bold text-slate-800">87.5</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-4">
                       <Star className="h-5 w-5 text-yellow-500 fill-current" />
                       <span className="text-lg font-semibold text-slate-700">
-                        {candidate.score && candidate.score >= 85
-                          ? "우수"
-                          : candidate.score && candidate.score >= 70
-                            ? "양호"
-                            : "개선 필요"}
+                        우수
                       </span>
                     </div>
                     <Button onClick={downloadReport} className="bg-blue-600 hover:bg-blue-700">
