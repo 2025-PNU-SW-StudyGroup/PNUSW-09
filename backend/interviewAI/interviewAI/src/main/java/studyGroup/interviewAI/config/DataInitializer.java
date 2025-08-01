@@ -7,14 +7,17 @@ import studyGroup.interviewAI.entity.Position;
 import studyGroup.interviewAI.entity.TechStack;
 import studyGroup.interviewAI.entity.Manager;
 import studyGroup.interviewAI.entity.Applicant;
+import studyGroup.interviewAI.entity.ApplicantTech;
 import studyGroup.interviewAI.entity.ApplicationStatus;
 import studyGroup.interviewAI.service.ExperienceService;
 import studyGroup.interviewAI.service.PositionService;
 import studyGroup.interviewAI.service.TechStackService;
 import studyGroup.interviewAI.service.ManagerService;
 import studyGroup.interviewAI.service.ApplicantService;
+import studyGroup.interviewAI.service.ApplicantTechService;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Component
 public class DataInitializer {
@@ -24,13 +27,15 @@ public class DataInitializer {
     private final PositionService positionService;
     private final ManagerService managerService;
     private final ApplicantService applicantService;
+    private final ApplicantTechService applicantTechService;
 
-    public DataInitializer(TechStackService techStackService, ExperienceService experienceService, PositionService positionService, ManagerService managerService, ApplicantService applicantService) {
+    public DataInitializer(TechStackService techStackService, ExperienceService experienceService, PositionService positionService, ManagerService managerService, ApplicantService applicantService, ApplicantTechService applicantTechService) {
         this.techStackService = techStackService;
         this.experienceService = experienceService;
         this.positionService = positionService;
         this.managerService = managerService;
         this.applicantService = applicantService;
+        this.applicantTechService = applicantTechService;
     }
 
     @PostConstruct
@@ -185,7 +190,24 @@ public class DataInitializer {
         // 지원자 저장 (기술스택은 별도로 처리)
         Applicant savedApplicant = applicantService.save(applicant);
         
-        // 기술스택 연결 (간단한 방식으로 처리)
-        System.out.println("지원자 " + username + " 생성 완료 (ID: " + savedApplicant.getId() + ")");
+        // 기술스택 연결
+        List<ApplicantTech> applicantTechs = new ArrayList<>();
+        for (Long techStackId : techStackIds) {
+            TechStack techStack = techStackService.findById(techStackId).orElse(null);
+            if (techStack != null) {
+                ApplicantTech applicantTech = new ApplicantTech();
+                applicantTech.setApplicant(savedApplicant);
+                applicantTech.setTechStack(techStack);
+                applicantTechs.add(applicantTech);
+            }
+        }
+        
+        // 기술스택 연결 정보 저장
+        if (!applicantTechs.isEmpty()) {
+            applicantTechService.saveAll(applicantTechs);
+            System.out.println("지원자 " + username + " 생성 완료 (ID: " + savedApplicant.getId() + ", 기술스택: " + applicantTechs.size() + "개)");
+        } else {
+            System.out.println("지원자 " + username + " 생성 완료 (ID: " + savedApplicant.getId() + ", 기술스택: 0개)");
+        }
     }
 } 
