@@ -1,177 +1,207 @@
 ### 1. 프로젝트 소개
 #### 1.1. 개발배경 및 필요성
-이 프로젝트는 창의융합 해커톤에 참여하는 사람들에게 README 작성의 가이드라인을 제공하기 위해 제작되었습니다.
+IT 대기업이 아닌 경우 전문 면접관의 부재로 인해 체계적인 면접 진행이 어렵고, 기술의 고도화로 기술 면접이 계속 어려워지며, 기술 면접에만 치중될 경우 지원자의 인성과 소프트 스킬을 평가하기 힘든 문제가 있습니다.
 <br/>
 
 #### 1.2. 개발목표 및 주요내용
-창의융합 해커톤을 참여하는 사람들의 README 작성방법 이해을 돕는 것입니다.
+면접관을 지원하는 AI 기반 면접 보조 시스템을 통해 효과적이고 체계적인 면접 진행을 가능하게 하고, 실시간으로 추천 질문을 제공하여 면접의 질을 향상시키는 것입니다.
 <br/>
 
 #### 1.3. 세부내용
-가이드라인은 README에 들어가야 할 목차와 대략적인 내용을 설명합니다.
+실시간 음성 인식을 통한 면접 대화 트래킹, AI 기반 추천 질문 생성, 면접 종료 후 상세한 결과 리포트 제공, 면접 복기 기능, 그리고 지원자 전체 현황 관리 기능을 포함합니다.
 <br/>
 
 #### 1.4. 기존 서비스(상품) 대비 차별성
-> 작성하세요.
+기존 면접 도구들과 달리 실시간으로 면접 대화를 분석하여 즉석에서 맞춤형 질문을 추천하고, 면접관의 판단을 보조하는 능동적인 지원 시스템으로서 차별화됩니다.
 <br/>
 
-#### 1.5. 사회적가지 도입 계획
-> 작성하세요.
+#### 1.5. 사회적가치 도입 계획
+중소기업과 스타트업의 면접 역량 강화를 통해 우수한 인재 확보를 지원하고, 공정하고 체계적인 면접 문화를 확산시켜 취업 시장의 균형 발전에 기여할 계획입니다.
 <br/>
 
 
 ### 2.상세설계
 #### 2.1. 시스템 구성도
-<img width="600px" alt="시스템 구성도" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/f0e7c7ed-deb1-47ee-8090-32f712fa2b23">
+<img width="600px" alt="시스템 구성도" src="./assets/system_architecture.png">
 <br/>
 
 #### 2.3. 사용기술
-| 이름                  | 버전    |
-|:---------------------:|:-------:|
-| Python                | 3.8.0   |
-| Django                | 3.2.9   |
-| Django Rest Framework | 3.12.0  |
-| Node.js               | 16.16.0 |
-| Vue.js                | 2.5.13  |
+| 분야 | 이름 | 버전 |
+|:-----:|:---------------------:|:-------:|
+| **Backend** | Java | 17 |
+|  | Spring Boot | 3.5.3 |
+|  | Spring Data JPA | - |
+|  | H2 Database | - |
+| **Frontend** | Next.js | 15.2.4 |
+|  | React | 19.0.0 |
+|  | TypeScript | 5 |
+|  | Tailwind CSS | 4.1.11 |
+| **LLM Server** | Python | 3.13+ |
+|  | FastAPI | 0.116.1+ |
+|  | LangChain | 0.3.27+ |
+| **Cloud** | Google Cloud Speech API | 7.2.0 |
 <br/>
 
 
 ### 3. 개발결과
-[코딩역량강화플랫폼 Online Judge](http://10.125.121.115:8080/)를 예시로 작성하였습니다.
 #### 3.1. 전체시스템 흐름도
-- 유저 플로우 차트
-  > 코딩 역량강화 플랫폼의 회원가입 부분만 작성했습니다. <br/>
-  > 사용자의 행동 흐름을 도식화하여 보여줍니다.
-  <img width="400px" alt="유저 플로우 차트" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/c8de7c98-efd8-4f64-a39a-720faabccd78" />
+##### 유저 플로우 차트
+<img width="400px" alt="유저 플로우 차트" src="./assets/user_flow_diagram.png" />
+<br/>
 
-- 테스크 플로우 차트
-  > 코딩 역량강화 플랫폼의 로그인 부분만 작성했습니다. <br/>
-  > 주요 테스크의 프로세스를 도식화하여 보여줍니다.
-  <img width="400px" alt="테스크 플로우 차트" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/b83502a9-032d-4453-8687-428d54643610" />
+##### IA(Information Architecture)
+<img width="600px" alt="IA" src="./assets/ia.png" />
+<br/>
 
-- 시스템 플로우 차트
-  > 코딩 역량강화 플랫폼의 로그인 부분만 작성했습니다. <br/>
-  > 테스크의 흐름에 따른 데이터 처리를 도식화하여 보여줍니다.
-  <img width="600px" alt="시스템 플로우 차트" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/1bfb66f0-446c-4450-8a81-a78bfe5ac9ce" />
-
-  
-- IA(Information Architecture)
-  > 정보나 시스템의 구조를 도식화하여 보여줍니다. <br/>
-  <img width="600px" alt="IA" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/07d842fe-fb73-4079-97a3-58b2495ff331" />
-
+##### ERD
+<img width="600px" alt="ERD" src="./assets/erd.png" />
 <br/>
 
 #### 3.2. 기능설명
 ##### ` 메인 페이지 `
-- 상단 배너
-  - 3초에 마다 자동으로 내용이 넘어갑니다. <br/>
-    ![상단 배너](https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/4640389f-dcaf-4b78-916e-188c8e9c6ee7)
-
-- 공지사항
-  - 최근 5개의 공지사항을 보여줍니다.
-  - 발행된지 일주일이 안 된 공지사항은 new라는 mark표시를 해줍니다.
-  - 공지사항 글을 클릭하면 해당 공지사항 게시글로 이동합니다.
-  - 상단의 더보기 버튼을 클릭하면 공지사항 페이지로 이동합니다.<br/>
-    <img width="600px" alt="공지사항" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/7c425946-ff06-4b32-8b18-4119cc86e308">
-
-- 이번 주 보너스 문제
-  - 이번 주의 보너스 점수를 주는 문제를 보여줍니다.
-  - 문제를 클릭하면, 해당 문제의 게시글로 이동합니다. <br/>
-    <img width="600px" alt="이번 주 보너스 문제" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/5c603984-8cf6-4524-84a6-5410bb6a8cbf">
-
-- 실시간 랭킹
-  - 상위 랭킹 10명의 유저를 보여줍니다.
-  - 상단의 더보기 버튼을 클릭하면 전체 랭킹 페이지로 이동합니다.<br/>
-    <img width="200px" alt="실시간 랭킹" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/8492e285-5423-4c00-bc46-400cbe733d35">
+<img width="600px" alt="상단 배너" src="./assets/page_home.png" />
 <br/>
 
-##### ` 문제 페이지 `
-- 문제 목록
-  - 사용자가 설정한 한 번에 보여줄 문제 갯수 만큼 한 화면에 문제를 띄워줍니다.
-  - 검색창에서 문제의 제목 및 번호로 문제를 검색할 수 있습니다.
-  - 난이도, 영역, 카테고리 별로 문제를 볼 수 있습니다.
-  - 상단의 shuffle 이모지를 클릭하면 랜덤으로 선택된 문제 푸는 페이지로 이동합니다.
-  - 목록에서 문제를 클릭하면 해당 문제를 푸는 페이지로 이동합니다.
-    ![문제 목록](https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/95afd0db-b5a7-4628-ac9c-164513a9e51b)
+- 대시보드
+  - 진행 중인 면접과 완료된 면접 현황을 한눈에 확인할 수 있습니다.
+  - 최근 면접 결과와 평가 점수를 요약해서 보여줍니다.
+
+- 면접 일정 관리
+  - 예정된 면접 일정과 지원자 정보를 확인할 수 있습니다.
+  - 면접 시작 버튼을 클릭하여 바로 면접을 진행할 수 있습니다.
+
+- 지원자 관리
+  - 전체 지원자 목록과 지원 포지션을 확인할 수 있습니다.
+  - 각 지원자의 면접 진행 상태와 결과를 조회할 수 있습니다.
 <br/>
 
-
-#### 3.3. 기능명세서
-<img width="200px" alt="실시간 랭킹" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/97ad3fea-f90a-437a-b611-3fb8cd24070e" />
-
-|라벨|이름|상세|
-|:---:|:----------------------------:|:---|
-| S1  | 부산대학교 웹메일              | - 부산대 웹메일 형식인지 검증 <br/>- 중복되는 이메일인지 검증 |
-| S2  | 부산대학교 웹메일 인증 코드 전송| - 클릭 시 인증 코드 메일로 전송 |
-| S3  | 메일 인증 코드                 | - 인증 요청 버튼 클릭 후 활성화 <br/>- 유효시간 5분|
-| S4  | 메일 인증 코드 확인            | - 인증코드 검증 |
-| S5  | 닉네임                        | - 4 ~ 12자 영어, 숫자, '_' 가능 |
-| S6  | 단과대학 선택                  | -부산대학교 단과대학 리스트 보여주기 |
-| S7  | 학과 선택                     | - 단과대학 안의 학과 리스트 보여주기 |
-| S8  | 비밀번호                      | - 입력 시 텍스트 보이지 않도록 •로 표현해주기 <br/>- 6자 이상 20자 이하, 영어와 숫자 조합 필수 |
-| S9  | 비밀번호 확인                  | - 입력 시 텍스트 보이지 않도록 •로 표현해주기 <br/>- 비밀번호와 동일한 지 검증 |
-| S10 | 회원가입 완료                  | - 비어 있는 입력 칸이 없는지 검증 <br/>-메일 인증 완료했는지 확인 <br/>-조건을 만족하면 회원가입 성공|
-| S11 | 로그인                        | - 클릭 시 로그인 모달로 전환 |
-
+##### ` 등록 페이지 `
+<img width="600px" alt="등록 페이지" src="./assets/page_register.png" />
 <br/>
+
+- 지원자 정보 입력
+  - 이름, 이메일, 연락처 등 기본 정보를 입력합니다.
+  - 지원 포지션과 경력 사항을 선택하고 입력할 수 있습니다.
+
+- 기술 스택 선택
+  - 보유한 기술 스택을 체크박스로 선택할 수 있습니다.
+  - 각 기술에 대한 숙련도를 단계별로 설정할 수 있습니다.
+
+- 이력서 업로드
+  - PDF 형태의 이력서 파일을 업로드할 수 있습니다.
+  - 업로드된 이력서는 면접 시 참고 자료로 활용됩니다.
+<br/>
+
+##### ` 인터뷰 페이지 `
+<img width="600px" alt="인터뷰 페이지" src="./assets/page_interview.png" />
+<br/>
+
+- 실시간 음성 인식
+  - 면접 대화가 실시간으로 텍스트로 변환되어 화면에 표시됩니다.
+  - Google Cloud Speech API를 활용한 정확한 음성 인식을 제공합니다.
+
+- AI 질문 추천
+  - 면접 진행 상황을 분석하여 적절한 후속 질문을 실시간으로 추천합니다.
+  - 기술 면접과 인성 면접 질문이 균형있게 제공됩니다.
+
+- 면접 진행 상황
+  - 면접 시간과 진행률을 실시간으로 확인할 수 있습니다.
+  - 주요 키워드와 평가 포인트가 하이라이트되어 표시됩니다.
+
+##### ` 인터뷰 보고서 페이지 `
+<img width="600px" alt="인터뷰 보고서 페이지" src="./assets/page_report.png" />
+<br/>
+- 종합 평가 결과
+  - AI 분석을 통한 지원자의 기술 역량과 커뮤니케이션 능력 평가를 제공합니다.
+  - 각 평가 항목별 점수와 상세 피드백을 확인할 수 있습니다.
+
+- 면접 대화 분석
+  - 전체 면접 내용의 텍스트 기록과 주요 대화 구간을 제공합니다.
+  - 지원자의 답변 패턴과 키워드 분석 결과를 시각화하여 보여줍니다.
+
+- 개선 제안사항
+  - 향후 면접 진행 시 개선할 수 있는 질문 방향과 평가 포인트를 제안합니다.
+  - 지원자 유형별 맞춤형 면접 가이드를 제공합니다.
 
 #### 3.4. 디렉토리 구조
 ```
-├── build/                      # webpack 설정 파일
-├── config/                     # 프로젝트 설정 파일
-├── deplay/                     # 배포 설정 파일
-├── src/                        # 소스 코드
-│   ├── assets/                 # 이미지, 폰트 등의 정적 파일
-│   ├── pages/                  # 화면에 나타나는 페이지
-│   │   ├── page1/              # 페이지1
-│   │   ├── page2/              # 페이지2
-│   │   ├── components/         # 여러 페이지에서 공통적으로 사용되는 컴포넌트
-│   ├── router/                 # 라우터
-│   ├── store/                  # global state store
-│   ├── styles/                 # 스타일
-│   ├── utils/                  # 유틸리티
-├── static/                     # 정적 파일
+PNUSW-09/
+├── backend/                    # Spring Boot 백엔드
+│   └── interviewAI/
+│       └── src/main/java/studyGroup/interviewAI/
+│           ├── controller/     # REST API 컨트롤러
+│           ├── entity/         # JPA 엔티티
+│           ├── repository/     # 데이터 접근 계층
+│           └── service/        # 비즈니스 로직
+├── frontend/                   # Next.js 프론트엔드
+│   ├── app/                    # 페이지 라우팅
+│   │   ├── interview/[id]/     # 면접 진행 페이지
+│   │   ├── candidates/[id]/    # 지원자 관리 페이지
+│   │   └── api/speech/         # 음성 처리 API
+│   └── components/             # 재사용 가능한 컴포넌트
+├── llm-server/                 # Python LLM 서버
+│   ├── main.py                 # FastAPI 메인 서버
+│   ├── prompts.py              # LLM 프롬프트 관리
+│   └── question_generator.py   # 질문 생성 로직
+└── assets/                     # README 이미지 자료
 ```
 <br/>
 
 
 ### 4. 설치 및 사용 방법
-**필요 패키지**
-- 위의 사용 기술 참고
 
+#### 4.1. Frontend (Next.js)
 ```bash
-$ git clone https://github.com/test/test.git
-$ cd test/frontend
+$ cd frontend
 $ npm i
-$ export NODE_ENV="development" # windows: set NODE_ENV=development
-$ npm run build:dll
-$ export TARGET="http://localhost:8000"  # windows: set NODE_ENV=http://localhost:8000
 $ npm run dev
 ```
+- 브라우저에서 `http://localhost:3000` 접속
+
+#### 4.2. Backend (Spring Boot)
+```bash
+$ cd backend/interviewAI/interviewAI
+$ ./gradlew bootRun
+```
+- 또는 IDE에서 `InterviewAiApplication.java` 실행
+- 서버 실행 후 `http://localhost:8080` 접속
+
+#### 4.3. LLM Server (FastAPI)
+```bash
+$ cd llm-server
+$ uv run main.py
+```
+- 서버 실행 후 `http://localhost:8000` 접속
 <br/>
 
 
 ### 5. 소개 및 시연영상
-[<img width="700px" alt="소개 및 시연영상" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/162132cd-9af5-4154-9b9a-41c96cf5e8fd" />](https://www.youtube.com/watch?v=EfEgTrm5_u4)
+[<img width="700px" alt="소개 및 시연영상" src="https://img.youtube.com/vi/znU13XX5PZ4/maxresdefault.jpg" />](https://youtu.be/znU13XX5PZ4)
 
 <br/>
 
 ### 6. 팀 소개
-| MEMBER1 | MEMBER2 | MEMBER3 |
-|:-------:|:-------:|:-------:|
-|<img width="100px" alt="MEMBER1" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/f5b5df2a-e174-437d-86b2-a5a23d9ee75d" /> | <img width="100px" alt="MEMBER2" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/fe4e8910-4565-4f3f-9bd1-f135e74cb39d" /> | <img width="100px" alt="MEMBER3" src="https://github.com/pnuswedu/SW-Hackathon-2024/assets/34933690/675d8471-19b9-4abc-bf8a-be426989b318" /> |
-| member1@pusan.ac.kr | member2@gmail.com | member3@naver.com |
-| 프론트앤드 개발 | 인프라 구축 <br/> 백앤드 개발 | DB 설계 <br/> 백앤드 개발 |
+| 김은종 | 여채언 | 김성윤 | 문성재 | 최지은 | 허동혁 |
+|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+|<img width="100px" alt="MEMBER1" src="./assets/profile_ejkim.jpeg" /> | <img width="100px" alt="MEMBER2" src="./assets/profile_ceyeo.jpeg" /> | <img width="100px" alt="MEMBER3" src="./assets/profile_sykim.jpeg" /> | <img width="100px" alt="MEMBER4" src="./assets/profile_sjmoon.png" /> | <img width="100px" alt="MEMBER5" src="./assets/profile_jechoi.jpeg" /> | <img width="100px" alt="MEMBER6" src="./assets/profile_dhheo.png" /> |
+| eunjong147@pusan.ac.kr | codjs2659@pusan.ac.kr | kimsoungyoon01@gmail.com | paulmoon00@naver.com | eaee20171@gmail.com | missko30@pusan.ac.kr |
+| 기획, 개발 | 인프라 구축 <br/> 백엔드 개발 | DB 설계 | 백엔드 개발 | LLM 서버 개발 | 프론트엔드 개발 |
 
 
 <br/>
 
 
 ### 7. 해커톤 참여 후기
-- MEMBER1
-  > 작성하세요.
-- MEMBER2
-  > 작성하세요.
-- MEMBER3
-  > 작성하세요.
+- 김은종
+  > 면접관의 어려움에서 시작된 아이디어가 실제 동작하는 서비스로 구현되는 과정이 정말 보람찼습니다. 팀원들과 토론하며 기획을 다듬어가는 시간이 가장 기억에 남습니다.
+- 여채언
+  > Spring Boot와 인프라 설정을 담당하면서 안정적인 백엔드 시스템 구축의 중요성을 다시 한번 느꼈습니다. 특히 실시간 음성 처리를 위한 API 설계가 흥미로운 도전이었어요.
+- 김성윤
+  > 면접 데이터의 복잡한 관계를 ERD로 설계하면서 데이터베이스 모델링의 깊이를 경험할 수 있었습니다. 효율적인 쿼리 성능을 고려한 테이블 설계가 특히 재밌었습니다.
+- 문성재
+  > REST API 설계와 JPA 연동을 통해 백엔드 개발 실력을 한층 더 향상시킬 수 있었습니다. 프론트엔드와의 원활한 데이터 통신을 위한 API 설계가 인상 깊었어요.
+- 최지은
+  > LangChain과 FastAPI를 활용한 LLM 서버 개발이 정말 흥미로웠습니다. 실시간으로 면접 맥락을 파악해서 적절한 질문을 생성하는 AI 로직을 구현하는 과정에서 많은 것을 배웠어요.
+- 허동혁
+  > Next.js와 React로 직관적인 면접 인터페이스를 만들면서 사용자 경험의 중요성을 깨달았습니다. 실시간 음성 인식과 질문 추천 기능을 자연스럽게 통합하는 UI 설계가 가장 보람찼던 것 같습니다.
 <br/>
